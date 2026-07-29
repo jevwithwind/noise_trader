@@ -230,6 +230,17 @@ every result below.
     # Precomputed because a brace inside an f-string expression is not an escape:
     # it is parsed as a set literal and the lookup fails.
     m0_mean = (st.get("m0_all") or {}).get("mean")
+    fine_m0, one_m0 = fine.get("m0"), one_yen.get("m0")
+    if fine_m0 is not None and one_m0 is not None:
+        tick_sentence = (
+            f"and the 0.1-yen days deliver it: {pct(fine_m0)}\\% against "
+            f"{pct(one_m0)}\\% on the 1-yen grid")
+    elif one_m0 is not None:
+        tick_sentence = (
+            "and while this sample holds too few 0.1-yen stock-days to report a "
+            f"separate mean, the 1-yen grid averages {pct(one_m0)}\\%")
+    else:
+        tick_sentence = "and Table~\\ref{tab:tick} reports the comparison"
     mss_mean = (st.get("m_s_small0") or {}).get("mean")
     rdb_mean = (st.get("rdepth_bid0") or {}).get("mean")
     gap_b_pp = 100 * (gap_b.get("gap") or 0)
@@ -286,9 +297,8 @@ and a smaller one at five, it would produce something lumpy.
 \\input{{tables/t_tick}}
 \\input{{tables/t_size}}
 
-\\textcite{{Harris1991Clustering}} predicts more clustering on finer grids, and
-the 0.1-yen days deliver it: {pct(fine.get('m0'))}\\% against
-{pct(one_yen.get('m0'))}\\% on the 1-yen grid. The mechanism is not mysterious.
+\\textcite{{Harris1991Clustering}} predicts more clustering on finer grids,
+{tick_sentence}. The mechanism is not mysterious.
 At a price around 900 yen a 0.1-yen tick is about one basis point, fine enough
 that order placement collapses back onto whole-yen prices --- and a whole yen is
 the roundest number available. These days are kept here, where they are a

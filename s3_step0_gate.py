@@ -48,8 +48,35 @@ def main() -> int:
 
         uni = os.path.join(C.RESULTS, "s2_ingest", "universe.csv")
         if os.path.exists(uni):
-            n_uni = pl.read_csv(uni).height
+            u = pl.read_csv(uni)
+            n_uni = u.height
             print(f"universe: {n_uni:,} stocks")
+
+            # The ladder inference costs several times the base measures, because
+            # it expands every book snapshot into twenty price-level rows before
+            # differencing them. It runs on a size-stratified subsample so the
+            # cost is bounded and the coverage is still representative; the
+            # decision is written down rather than left implicit.
+            n_per = 60
+            u = u.drop_nulls("mktcap").sort("mktcap")
+            if u.height:
+                u = u.with_columns(
+                    q=(pl.col("mktcap").rank("ordinal") * 5 // (u.height + 1) + 1)
+                    .cast(pl.Int8))
+                picks = []
+                for q in range(1, 6):
+                    sub = u.filter(pl.col("q") == q)
+                    if sub.height == 0:
+                        continue
+                    step = max(1, sub.height // n_per)
+                    picks += sub["ticker"].to_list()[::step][:n_per]
+                picks = sorted(set(str(p).zfill(4) for p in picks))
+                p = os.path.join(C.RESULTS, "s3_panel", "ladder_tickers.txt")
+                C.ensure_dir(os.path.dirname(p))
+                with open(C.write_guard(p), "w", encoding="utf-8") as fh:
+                    fh.write("\n".join(picks))
+                print(f"ladder subsample: {len(picks)} stocks, evenly spread across "
+                      f"market-capitalisation quintiles -> {p}")
             if dates:
                 n_files = len(S3.date_files(dates[len(dates) // 2]))
                 print(f"tickers in a mid-year date partition: {n_files:,}")
