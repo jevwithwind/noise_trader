@@ -57,7 +57,7 @@ def main() -> int:
                   "committing before publish")
             if not args.dry_run:
                 run(["git", "add", "-A"])
-                run(["git", "-c", "user.name=Kevin Lee",
+                run(["git", "-c", "user.name=Kazumi Li",
                      "-c", "user.email=kevinlee.tokyo@gmail.com",
                      "commit", "-q", "-m", "Final results and report"])
 
