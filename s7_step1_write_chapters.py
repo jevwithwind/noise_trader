@@ -246,8 +246,10 @@ and the variables used to screen the universe.
 \\paragraph{{The exchange runs two tick grids at once.}}
 Constituents of the TOPIX 500 trade on a finer grid than everything else --- a
 regime extended from the TOPIX 100 to the whole index on 2023-06-05 and stable
-since. The schedule is encoded from the exchange's published tables and
-cross-checked against ticks read directly off the tape.
+since. The schedule is encoded from the exchange's published tables
+\\parencite{{JPX2024TickSize}} and cross-checked against ticks read directly off
+the tape. The continuous-auction mechanism these measures are computed over is
+described in \\textcite{{LehmannModest1994}}.
 
 This interacts with Ohta's sample filter in a way worth stating plainly, because
 it shapes the sample more than any other decision. The filter admits only tick

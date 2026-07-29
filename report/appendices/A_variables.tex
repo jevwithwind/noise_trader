@@ -49,8 +49,8 @@ exact on every grid.
 \item[$\mathit{QS}$] Time-weighted quoted spread in basis points, sampled on a
   one-minute grid over snapshots showing an ordinary two-sided book.
 \item[$\mathit{Amihud}$] Absolute open-to-close return divided by turnover in
-  millions of yen. Auxiliary only: it is included as a familiar yardstick, not as
-  a substitute for the measures above.
+  millions of yen, after \textcite{Amihud2002}. Auxiliary only: it is included as
+  a familiar yardstick, not as a substitute for the measures above.
 \end{description}
 
 \subsection*{Price formation}
@@ -96,7 +96,8 @@ exact on every grid.
 \subsection*{Controls and sample variables}
 
 \begin{description}[leftmargin=6.5em, style=nextline, nosep, font=\normalfont\itshape]
-\item[$\tau$] Tick size for the stock-day, taken from the encoded JPX schedule and
+\item[$\tau$] Tick size for the stock-day, taken from the exchange's published
+  schedule \parencite{JPX2024TickSize} as encoded in this repository, and
   cross-checked against the finest increment observed on the tape.
 \item[$\mathit{RelTick}$] Tick size divided by the opening price, in basis points.
 \item[$D^{n} \times \mathit{Lowvol}$] Interaction of a dummy for the opening
