@@ -1,6 +1,6 @@
 
 % =====================================================================
-\section{Does 2025 look like the paper's sample?}
+\section{Replication: does 2025 look like the paper's sample?}
 \label{sec:stylized}
 % =====================================================================
 
@@ -18,7 +18,8 @@ benchmarks. Round prices take 14.22\% of all
 continuous-session volume against his 13.5\%, and
 14.95\% of buy-initiated large-trade volume against his 14.8\%. Under a
 uniform digit distribution every one of these would be 10\%. Clustering is
-alive and well on the Tokyo Stock Exchange two years past the end of his sample.
+alive and well on the Tokyo Stock Exchange three years past the end of his
+sample.
 
 \paragraph{The ordering the mechanism predicts.}
 The paper's account is specifically about \emph{large} orders taking stale
@@ -46,7 +47,7 @@ remaining seven digits sit flat. That shape is itself a diagnostic --- a
 measurement error in the digit arithmetic would not produce a clean spike at zero
 and a smaller one at five, it would produce something lumpy.
 
-\subsection{Finer grids, smaller stocks}
+\subsection{Finer grids, and the size question}
 
 \input{tables/t_tick}
 \input{tables/t_size}
@@ -58,9 +59,9 @@ that order placement collapses back onto whole-yen prices --- and a whole yen is
 the roundest number available. These days are kept here, where they are a
 result, and excluded from the regressions, where the paper excludes them.
 
-Table~\ref{tab:size} is the one place this sample departs from the paper. Ohta reports clustering falling with market capitalisation; here the smallest quintile shows 14.83\% and the largest 15.82\%, with no reliable gradient between them.
+Table~\ref{tab:size} is the one place this sample departs from the paper. Ohta reports clustering falling with market capitalisation; here the smallest quintile shows 14.83\% and the largest 15.82\%, with no reliable gradient between them. Part of Q5's pooled elevation is composition rather than behaviour: 12.2\% of its stock-days sit on the 0.1-yen grid, whose clustering is mechanically higher, and restricting every quintile to the 1-yen grid moves Q5 from 15.82\% to 15.51\% against Q1's 14.83\%. A genuine dip at Q4 (13.81\%) remains that neither explanation predicts.
 
-The likely reason is the universe rather than the market. Ohta's sample spans the whole First Section, a range wide enough for a size gradient to show. The screen used here keeps only stocks liquid enough to clear his twenty-trade and tick-size filters on more than half the sample, which removes much of the small end before the quintiles are formed; what remains is a comparison among stocks that are all reasonably active. A sample-selection explanation is not the same as a refutation, and it would be settled by running the same measures on the Standard and Growth sections, which this study does not cover.
+Two candidate explanations survive that decomposition, and neither is tested here. The screen keeps only stocks liquid enough to clear the paper's twenty-trade and tick filters on more than half the sample, which removes the small-cap end where his gradient is steepest; and four months of cross-section is thin for sorting on a slow characteristic. Settling it would take the Standard and Growth sections, which this study does not cover. The gradient is treated as absent in this universe, not as explained.
 
 It does not change the strategy design in Section~\ref{sec:strategy}: size is neutralised there regardless, because the concern is that a sort might load on size, not that it must.
 
@@ -80,7 +81,12 @@ This is the paper's second result and the one that makes clustering matter for
 execution. A trade at a round price is executing against an order whose price has
 gone stale, so the midquote should move further afterwards. At the one-minute
 horizon the premium is 0.43 basis points on the buy side and
-0.51 on the sell side, against Ohta's 1.26 and 1.12.
+0.51 on the sell side --- positive and precisely estimated, at
+about 34\% of the 1.26 and 1.12 the paper reports for
+2010--2022. A smaller premium in a faster market is what stale-order
+pick-off would predict, but that reading is not tested here; the honest
+statement is that the sign replicates and the magnitude does
+not. The premium is front-loaded: 0.74 basis points at one second, 0.43 at one minute, and no longer distinguishable from zero on the buy side at five minutes (-0.05). Whatever a round-price large trade pays extra, the midquote gives most of it back within minutes --- transient pressure, not information. That shape matters for any execution use of the result: the cost of crossing at a round price is real but short-lived.
 
 The effective-spread decomposition closes as an identity, which is a check on the
 implementation rather than a finding: impact plus realized spread equals the
@@ -108,16 +114,9 @@ after the fact, this observes the inventory while it is still exposed.
 \subsection{The contamination the paper warns about}
 
 \input{tables/t_opening}
+\input{tables/t_opening_stuck}
 
-Ohta's Table 2 documents a mechanical distortion: a day that opens far from a
-round price and then barely moves can never print one, so its measure is low for
-reasons that have nothing to do with noise traders. The distortion is present in
-the sample. Opening prices cluster on their own --- digit zero accounts for
-about a fifth
-of openings against a tenth under uniformity --- and days opening near a round
-price show visibly higher measured clustering than days opening far from one.
-Every regression below therefore carries the interaction of the opening-digit
-dummies with a low-volatility indicator, as the paper does.
+Ohta's Table 2 documents a mechanical distortion: a day that opens far from a round price and then barely moves can never print one, so its measure is low for reasons that have nothing to do with noise traders. Both ingredients are visible here. Opening prices cluster on their own --- digit zero takes about a fifth of openings --- and days opening within one digit of a round price measure 14.85\% against 13.57\% for mid-digit openers on low-volatility days, with a nearly identical gap (14.93\% vs 13.84\%) on volatile ones: under a median volatility split the level effect dominates and the interaction is faint, because the median day still traverses many grid points. On genuinely stuck days --- the bottom decile of the daily price range, the closest analogue of the paper's conditioning --- the signature sharpens the way Table 2 says it should: a stuck day that opened on a round price measures 16.44\% against 15.24\% when mobile, while stuck days opening at digits four to seven measure 12.29\% against 13.82\% (Table~\ref{tab:openingstuck}). Every regression below therefore carries the opening-digit by low-volatility interactions with the timing matched to the regressor, and the strategy signal is residualised on the same-day set.
 
 \paragraph{Verdict.}
-The sample reproduces the paper's facts: clustering well above the uniform benchmark, concentrated in large trades, stronger on finer grids, without the usual size gradient, carrying a positive round-price impact premium. The measurement is sound and the rest of the study can be built on it.
+The sample reproduces the paper's core facts --- clustering well above the uniform benchmark, concentrated in large trades, stronger on finer grids, without the paper's size gradient in this screened universe, carrying a positive round-price impact premium. The one departure (the size gradient) is documented with its decomposition rather than smoothed over. The measurement is sound and the rest of the study can be built on it.

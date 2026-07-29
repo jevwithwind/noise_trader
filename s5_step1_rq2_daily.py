@@ -47,13 +47,19 @@ def main() -> int:
         raw = S4.load_panel(final_only=True, drop_fine_tick=True)
         print(f"stock-days after dropping 0.1-yen-tick days: {raw.height:,}")
         df = S5.build_frame(raw)
-        dums, df = S5.opening_digit_dummies(df)
-        controls = [c for c in S5.CONTROLS if c in df.columns] + dums
+        # Two dummy sets, because the contamination control must share the
+        # timing of the regressor it cleans: the contemporaneous column pairs
+        # M_t with same-day interactions, the lagged columns pair M_{t-1}
+        # with lagged ones.
+        dums_l1, df = S5.opening_digit_dummies(df, lagged=True)
+        dums_now, df = S5.opening_digit_dummies(df, lagged=False)
+        base_ctrl = [c for c in S5.CONTROLS if c in df.columns]
         df = df.with_columns(fine_tick_day=pl.col("fine_tick_day").cast(pl.Float64))
 
         x = S5.PRIMARY_X
         xl = f"{x}_l1"
-        print(f"primary regressor: {xl}   controls: {len(controls)}\n")
+        print(f"primary regressor: {xl}   controls: "
+              f"{len(base_ctrl)} + {len(dums_l1)} contamination dummies\n")
 
         results, rows = {}, []
         for y, label, primary in OUTCOMES:
@@ -64,11 +70,11 @@ def main() -> int:
             # itself it is the lagged dependent variable. Dropping it from the
             # control set there keeps the three specifications genuinely distinct
             # rather than making two of them the same regression.
-            ctrl = [c for c in controls if c != yl]
+            ctrl = [c for c in base_ctrl if c != yl]
             specs = {
-                "contemporaneous": [x] + ctrl,
-                "predictive": [xl] + ctrl,
-                "dynamic": [xl, yl] + ctrl,
+                "contemporaneous": [x] + ctrl + dums_now,
+                "predictive": [xl] + ctrl + dums_l1,
+                "dynamic": [xl, yl] + ctrl + dums_l1,
             }
             print(f"--- {label} ---")
             row = [label + ("" if primary else "$^{\\dagger}$")]
@@ -100,14 +106,17 @@ def main() -> int:
                   "control set (relative tick size, lagged log turnover, lagged "
                   "log realised variance, lagged log effective spread, the "
                   "overnight return, and the opening-digit by low-volatility "
-                  "interactions). The dynamic column adds the outcome's own lag, "
+                  "interactions, timed to match the regressor: lagged "
+                  "interactions beside $M_{t-1}$, same-day ones beside $M_t$). "
+                  "The dynamic column adds the outcome's own lag, "
                   "so its coefficient is the incremental predictive content of "
-                  "clustering given what yesterday's liquidity already said. "
+                  "clustering given the outcome's own one-day lag; "
+                  "Section~\\ref{sec:robust} probes deeper lags. "
                   "Standard errors are clustered by stock and by day. Days on the "
                   "0.1-yen grid are excluded, following Ohta (2026). "
                   "$^{\\dagger}$ secondary outcome, not pre-specified. "
                   "$^{*}p<0.1$, $^{**}p<0.05$, $^{***}p<0.01$. "
-                  "These are predictive associations in a single year, not "
+                  "These are predictive associations in a single quarter, not "
                   "causal estimates.")
 
         # Other clustering measures as the regressor, to see whether the result is
@@ -118,7 +127,7 @@ def main() -> int:
             al = f"{alt}_l1"
             if al not in df.columns:
                 continue
-            r = S5.fit(df, "ln_effsprd", [al, "ln_effsprd_l1"] + controls)
+            r = S5.fit(df, "ln_effsprd", [al, "ln_effsprd_l1"] + base_ctrl + dums_l1)
             b, se = S5.cell(r, al)
             t = r.get("t", {}).get(al, float("nan"))
             print(f"  {alt:<14} beta={b:<14} se={se:<12} t={t:>6.2f}  n={r.get('n',0):,}")
@@ -128,6 +137,15 @@ def main() -> int:
                           .replace("m_s_small0", "SSmall0")
                           .replace("m0_all", "0"), b, se, f"{r.get('n',0):,}"])
             results[f"alt|{alt}"] = {k: r.get(k) for k in ("coef", "se", "t", "n")}
+
+        # Dispersions of the alternative measures, so the report can compare
+        # coefficients per standard deviation rather than per raw unit -- the
+        # small-trade shares are far less dispersed than the large-trade ones.
+        results["alt_sds"] = {
+            alt: float(df[alt].drop_nulls().std())
+            for alt in ["m_b_large0", "m_s_large0", "m_b_small0", "m_s_small0",
+                        "m0_all"]
+            if alt in df.columns and df[alt].drop_nulls().len() > 100}
         S4.latex_table(
             os.path.join(S4.TABLES, "t_rq2_alt.tex"),
             "Which clustering measure carries the information?",

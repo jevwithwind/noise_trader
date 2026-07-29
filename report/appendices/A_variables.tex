@@ -101,10 +101,13 @@ exact on every grid.
   cross-checked against the finest increment observed on the tape.
 \item[$\mathit{RelTick}$] Tick size divided by the opening price, in basis points.
 \item[$D^{n} \times \mathit{Lowvol}$] Interaction of a dummy for the opening
-  price's last digit being $n$ with a dummy for the previous day's realised
-  variance falling below that day's cross-sectional median. These control the
-  mechanical contamination documented in Ohta's Table 2 and reproduced in
-  Section~\ref{sec:stylized}. Digit zero is the omitted category.
+  price's last digit being $n$ with a dummy for realised variance falling
+  below that day's cross-sectional median, controlling the mechanical
+  contamination documented in Ohta's Table 2 and reproduced in
+  Section~\ref{sec:stylized}. The timing matches the regressor being cleaned:
+  specifications using $M_{t-1}$ carry $D^{n}_{t-1} \times
+  \mathit{Lowvol}_{t-1}$, the contemporaneous specification and the strategy
+  signal carry the same-day interaction. Digit zero is the omitted category.
 \item[$\mathit{ret}^{\mathrm{on}}$] Overnight return, previous close to opening
   price.
 \item[$\mathit{Turnover}$] Traded value in yen; entered in logs.

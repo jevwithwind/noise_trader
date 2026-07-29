@@ -1,31 +1,33 @@
 
-Ohta (2026) shows that price clustering on the Tokyo Stock Exchange arises
-because noise traders leave limit orders standing at round prices and faster
-participants take them with large market orders, and closes by proposing that
-clustering measures could therefore serve as an observable proxy for
-noise-trader activity --- leaving the relationship between that activity, price
-formation and liquidity as future work. This study carries out that analysis on
-the 2025 tape, three years beyond the paper's sample, using 77,592 stock-days
-across 1,046 stocks and 78 trading days.
+This briefing documents a working prototype of the future work proposed at the
+end of Ohta (2026): treating price clustering as an observable daily proxy for
+noise-trader activity and relating it to price formation and liquidity. It is
+written for one reader --- the author, preparing to present and extend this
+work during the MTEC internship --- so it optimises for being explainable:
+Section~\ref{sec:intro} maps the document, Table~\ref{tab:findings}
+states every finding with its verdict, and Section~\ref{sec:measures} gives
+the mathematical foundation of each measure with the reference it comes from.
+The sample is the January--April 2025 Tokyo Stock Exchange tape: 77,592 stock-days,
+1,046 stocks, 78 trading days, under the paper's own sample
+rules.
 
-The measures replicate. Round prices carry 14.95\% of large-trade volume
-against 10.77\% of small-trade volume, close to the paper's 14.8\% and
-11.1\%, and the large-minus-small ordering its mechanism predicts holds with
-high confidence. Trades at round prices move the midquote by about
-0.43 basis points more than other trades on the buy side, against
-the paper's 1.26.
+The measurement layer replicates the paper and is the sturdiest part of the
+study. Round prices carry 14.95\% of buy-initiated large-trade volume
+against 10.77\% of small-trade volume (the paper: 14.8 and 11.1), the
+round-price impact premium is positive at about 34\% of
+the paper's published one-minute size, and the ladder-inferred submission
+shares land on the paper's levels without calibration (0.102 vs
+0.106) --- while the cancellation ratios overshoot (0.91 vs 0.81),
+a difference reported as open rather than folded into the validation claim.
 
-Two measures the paper's data could not support are added. The share of visible
-ten-level resting depth sitting at round prices averages 13.21\% against a
-uniform benchmark of 10\%, observing the stale inventory directly rather than
-after it has been executed against; and limit-order submission and cancellation
-shares are inferred from ladder deltas, reproducing the paper's published
-magnitudes without having been calibrated to them.
+On the paper's open question, clustering carries a small amount of information about next-day trading costs (0.0188 on the log effective spread, $t=2.51$; depth moves the complementary way), but the pooled estimate is significant at the 5\% level, but it falls below conventional significance once the outcome's history means five lags rather than one; its sign reverses between the within-stock and cross-sectional designs. The within-day version is the
+robust one: bucket-level clustering predicts next-bucket spreads
+(0.0189, $t=8.80$) under stock-day and bucket fixed effects. A
+placebo rebuilding the measure on each other digit leaves 0 of nine
+significant.
 
-On the open question --- whether noise-trader activity marks a more liquid market
-or a more expensive one --- the panel gives an answer, reported with the caution
-a four-month sample deserves. A placebo that rebuilds the measure on each of the other
-nine last digits separates the round-price result from a mechanical artefact of
-how the measure is constructed. A strategy demonstration is included to exercise
-the machinery end to end; its informative output is the cost accounting, not the
-return.
+The strategy demonstration exists to price the idea, and it does: the daily
+long--short costs 32.0 basis points a day
+against a gross of -3.1. Sorting on a five-day mean of the signal instead cuts turnover from 74\% to 31\% of each leg per day and the cost line from 32.0 to 13.5 basis points, and the net line is still -15.5 -- the churn is measurement noise, and even without it there is no alpha at this horizon.
+The economics point at execution scheduling --- when and at which price levels
+to trade a rebalance that is happening anyway --- not at standalone alpha.

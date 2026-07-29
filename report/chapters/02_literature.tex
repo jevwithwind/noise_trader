@@ -1,7 +1,11 @@
 % =====================================================================
-\section{Related work}
+\section{Where each ingredient comes from}
 \label{sec:lit}
 % =====================================================================
+
+Every borrowed idea in this study is listed here with its source, so that any
+formula or design choice in Section~\ref{sec:measures} can be traced to the
+paper it originates from in one hop.
 
 \paragraph{Clustering as a measurement problem.}
 \textcite{Harris1991Clustering} established the facts every later study works
@@ -58,7 +62,7 @@ are distracted, liquidity deteriorates. Against that,
 order unrevised --- and \textcite{AquilinaBudishONeill2022} measure the speed
 race that determines who bears it. If clustering marks orders that are about to
 be picked off, it may mark a market that is about to become more expensive to
-trade, not less. Section~\ref{sec:liquidity} reports which way the 2024 data
+trade, not less. Section~\ref{sec:liquidity} reports which way this sample
 falls, and treats either answer as a result.
 
 \paragraph{Reading price impact carefully.}
@@ -82,6 +86,12 @@ construction is that of \textcite{ContKukanovStoikov2014}.
 \paragraph{Inference.}
 Every panel regression below carries stock and day fixed effects with standard
 errors clustered on both margins, following \textcite{CameronGelbachMiller2011}.
-With the same stock appearing on 240 days and the same day covering a thousand
-stocks, the alternative is not a slightly optimistic standard error but a badly
-wrong one.
+With the same stock appearing on nearly every day of the sample and the same
+day covering a thousand stocks, the alternative is not a slightly optimistic
+standard error but a badly wrong one. The dynamic specification inherits the
+small bias \textcite{Nickell1981} characterises, of order $1/T$; the estimator
+cross-check follows \textcite{FamaMacBeth1973} with \textcite{NeweyWest1987}
+standard errors over the daily coefficient series, and is reported precisely
+because the two designs identify different comparisons --- within a stock over
+time versus between stocks --- so their agreement or disagreement is itself a
+finding.

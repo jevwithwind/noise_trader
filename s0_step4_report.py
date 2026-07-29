@@ -126,7 +126,7 @@ def main() -> int:
         "S0 passes. The environment is verified against a known-truth panel, the "
         "trading calendar is frozen at 240 usable days with five documented "
         "exclusions, and the tick tables reproduce every tick observed on the tape. "
-        "40 unit tests cover the yobine bands and their boundary conventions, the "
+        "The unit-test suite covers the yobine bands and their boundary conventions, the "
         "integer digit arithmetic (including a test that records how the naive "
         "floating-point version fails), the session-close switch on 2024-11-05, the "
         "trade-signing map including the stop-quote variants, and the write guard.",

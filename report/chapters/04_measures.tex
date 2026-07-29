@@ -1,96 +1,191 @@
 % =====================================================================
-\section{Measures, and the validation they had to pass}
+\section{Mathematical foundations, and the validation they had to pass}
 \label{sec:measures}
 % =====================================================================
 
-Every measure is defined in full in Appendix~\ref{app:variables}. This section
-gives the ones the argument depends on, and then reports the checks the
-measurement layer had to survive before any result was computed from it.
+This section is the reference core of the briefing: every quantity the study
+computes, as a formula, with the source it originates from and the
+implementation detail that makes it correct on this exchange. The full
+variable list is in Appendix~\ref{app:variables}; the ladder algorithm has its
+own appendix. Throughout, $i$ indexes stocks, $t$ trading days, and prices are
+handled internally as integers in tenths of a yen, so the modular arithmetic
+below is exact on every grid --- floating-point \texttt{mod} silently corrupts
+the 0.1-yen grid, which is exactly where clustering is strongest.
 
-\subsection{Clustering}
+\subsection{Clustering (Ohta 2026)}
 
 For tick size $\tau$, the \emph{last price digit} of a trade at price $p$ is
-$(p \bmod 10\tau)/\tau$, and a \emph{round price} is one whose digit is zero.
-Under a uniform digit distribution each digit would carry 10\% of volume, so
-10\% is the benchmark against which every number in this study is read.
-
+%
 \begin{equation}
-M^{kLarge0}_{i,t} \;=\;
-\frac{\text{volume at a round price, large trades initiated on side } k}
-     {\text{volume in large trades initiated on side } k},
-\qquad k \in \{B, S\}
+d(p;\tau) \;=\; \frac{p \bmod 10\tau}{\tau} \;\in\; \{0,1,\dots,9\},
+\label{eq:digit}
 \end{equation}
+%
+and a \emph{round price} is one with $d(p;\tau)=0$
+\parencite{Ohta2026NoiseTraders}. The construction requires the tick to be a
+power of ten --- the paper's sample filter (d) --- and under a uniform digit
+distribution each digit carries 10\% of volume, which is the benchmark every
+clustering number in this study is read against. The stock-day measures are
+volume-weighted shares at the round price,
+%
+\begin{equation}
+M^{0}_{i,t} \;=\;
+\frac{\sum_{\text{trades}} v \,\mathbb{1}[d(p;\tau)=0]}{\sum_{\text{trades}} v},
+\qquad
+M^{k\,\mathit{Size}\,0}_{i,t} \;=\;
+\frac{\sum_{k,\mathit{Size}} v \,\mathbb{1}[d(p;\tau)=0]}
+     {\sum_{k,\mathit{Size}} v},
+\label{eq:M}
+\end{equation}
+%
+with initiator $k \in \{B, S\}$ from the exchange's own execution-type field
+(so no \textcite{LeeReady1991} inference is needed), \emph{Large} meaning more
+than one trading unit and \emph{Small} exactly one, following the paper. Only
+continuous-session (zaraba) trades executed against a two-sided ordinary quote
+enter; auction prints are excluded because their prices are not set by
+individual limit orders. The determinants of clustering --- volatility, price
+level, capitalisation, trading frequency, tick --- come from
+\textcite{Harris1991Clustering}, which is where the control set originates.
 
-\emph{Large} means a trade of more than one trading unit and \emph{small} exactly
-one unit, following the paper. Trades are signed by the exchange's own execution
-type rather than by a classification rule such as \textcite{LeeReady1991}, so the
-buy/sell split carries no inference error --- an advantage of this feed that
-studies of most other markets do not have.
+\subsection{Liquidity (the paper's definitions)}
 
-\paragraph{The arithmetic is integer.}
-Prices are converted once to tenths of a yen and every digit is computed with
-integer division and remainder. This is not fastidiousness. On the 0.1-yen grid,
-where clustering is strongest, the floating-point version of the same expression
-silently returns the wrong digit, and it does so on exactly the stock-days that
-matter most.
+With $m$ the midquote prevailing immediately before a trade and $q=+1$
+($-1$) for buy-initiated (sell-initiated) trades, the \emph{effective
+half-spread}, \emph{price impact} at horizon $\Delta$, and \emph{realized
+spread} are the volume-weighted means of
+%
+\begin{equation}
+\mathit{es} = q\,\frac{p - m_t}{m_t}, \qquad
+\mathit{imp}_\Delta = q\,\frac{m_{t+\Delta} - m_t}{m_t}, \qquad
+\mathit{rs}_\Delta = \mathit{es} - \mathit{imp}_\Delta,
+\label{eq:spread}
+\end{equation}
+%
+in basis points, at $\Delta \in \{1\mathrm{s}, 60\mathrm{s}, 300\mathrm{s}\}$.
+The decomposition of the effective spread into impact plus realized spread
+follows \textcite{HendershottJonesMenkveld2011}; reading impact as the
+informational content of a trade goes back to \textcite{GlostenMilgrom1985}
+and \textcite{Hasbrouck1991}, and Ohta's point --- adopted here --- is that in
+a limit-order market impact also rises when stale orders sit waiting to be
+taken, which is not information. Note there is no factor of two: these are
+half-spreads, matching the paper's convention. A trade's horizon must end
+inside its own session (no impact is measured across the lunch break or the
+close), and $\mathit{RS} = \mathit{ES} - \mathit{Imp}$ holds as an identity on
+each horizon's own trade set --- verified to three decimals as an
+implementation check, not a finding. The round-price impact premium is
+%
+\begin{equation}
+\Delta\mathit{Imp}^{k\mathit{Large}}_{i,t} \;=\;
+\mathit{Imp}^{k\mathit{Large},\,d=0}_{i,t} -
+\mathit{Imp}^{k\mathit{Large},\,d\neq 0}_{i,t},
+\label{eq:dimp}
+\end{equation}
+%
+with cells of fewer than five trades set missing rather than reported.
+\textcite{BoxGriffith2016} is the closest antecedent for pairing clustering
+asymmetries with round-price impact. The auxiliary Amihud measure is
+$|r^{oc}_{i,t}|$ over turnover in millions of yen \parencite{Amihud2002}.
 
-\subsection{Liquidity, as the paper defines it}
+\subsection{Price formation}
 
-The brief for this study specified the paper's liquidity measures rather than a
-volume proxy, and the distinction matters: volume is an activity measure, whereas
-what follows are all prices paid.
+Realised variance is the sum of squared five-minute midquote log returns
+within each session, and the variance-ratio deviation is
+%
+\begin{equation}
+\left| \mathit{VR}_{i,t} - 1 \right|, \qquad
+\mathit{VR}_{i,t} = \frac{\sigma^2_{5\mathrm{min}}}{5\,\sigma^2_{1\mathrm{min}}},
+\label{eq:vr}
+\end{equation}
+%
+the standard variance-ratio construction measuring departure from a random
+walk in either direction; returns never span the lunch break or the overnight
+gap.
 
-The \emph{effective half-spread} is the volume-weighted mean of $q(p-m)/m$ in
-basis points, where $m$ is the midquote immediately before the trade and $q$ is
-$+1$ for buy-initiated and $-1$ for sell-initiated trades. The \emph{price
-impact} at horizon $\Delta$ is the volume-weighted mean of
-$q(m_{t+\Delta}-m_t)/m_t$, and the \emph{realized spread} is the difference
-between the two. That difference is an identity, and Section~\ref{sec:stylized}
-reports it closing to three decimal places --- which is a check on the
-implementation, not a finding.
+\subsection{The visible ten-level book}
 
-Two details in the impact calculation do real work. A trade's horizon must end
-inside its own trading session: without that restriction, a trade at 11:29 would
-have its ``one minute later'' midquote taken from after the lunch break, which
-manufactures a zero. And the round-price premium
-$\Delta\mathit{Imp}^{kLarge} = \mathit{Imp}^{kLarge0} - \mathit{Imp}^{kLarge1}$
-requires a stock-day to contain at least five large trades of each kind; below
-that the difference of two noisy cell means is not worth reporting.
-
-\subsection{Two measures from the visible book}
-
-\paragraph{Round-price resting depth.}
-The clustering measures see a round-price order only once it has been executed
-against. The feed publishes ten price levels per side after every event, so the
-standing inventory is directly observable:
-
+Two measures use data the paper did not have. The \emph{round-price resting
+depth} is the share of visible ten-level depth standing at round prices,
+%
 \begin{equation}
 \mathit{RDepth}^{\mathrm{ask}0}_{i,t} \;=\;
-\text{time-averaged } \frac{\sum_{\ell \le 10} v^{\mathrm{ask}}_{\ell}
-\mathbb{1}[\text{digit}(p^{\mathrm{ask}}_{\ell}) = 0]}
-{\sum_{\ell \le 10} v^{\mathrm{ask}}_{\ell}}
+\text{time-avg}\;
+\frac{\sum_{\ell \le 10} v^{\mathrm{ask}}_{\ell}\,
+      \mathbb{1}[d(p^{\mathrm{ask}}_{\ell};\tau) = 0]}
+     {\sum_{\ell \le 10} v^{\mathrm{ask}}_{\ell}},
+\label{eq:rdepth}
 \end{equation}
+%
+sampled on a one-minute grid over ordinary two-sided snapshots (uniform
+benchmark again 10\%). The idea that the book itself is thicker at round
+prices is documented for Hong Kong by \textcite{AhnCaiCheung2005}; the measure
+here is that observation turned into a stock-day share. The \emph{order-flow
+imbalance} at the best quote follows \textcite{ContKukanovStoikov2014}
+exactly, and the \emph{depth slope} --- how fast size grows walking away from
+the best quote --- follows \textcite{NaesSkjeltorp2006};
+\textcite{CaoHanschWang2009} is the license for looking past the best quote at
+all.
 
-sampled on a one-minute grid over snapshots showing an ordinary two-sided quote,
-so that a stock quoting ten thousand times a second does not dominate its own
-daily average. Under a uniform digit distribution this would be 10\%. It is the
-closest thing in this study to observing the mechanism directly: stale
-round-price orders while they are still exposed, rather than after they have been
-taken.
+\subsection{Limit-order flow inferred from the ladder}
 
-\paragraph{Limit-order submission and cancellation.}
 Ohta's explanatory variables are the round-price shares of submitted and
-cancelled limit-order volume. Those are inferred here from how the displayed
-ladder changes between consecutive snapshots, using the accounting identity that
-resting volume at a price can only change by execution, cancellation or
-submission. The algorithm, the two rules that make it correct, and what it cannot
-see are set out in Appendix~\ref{app:ladder}.
+cancelled limit-order volume. The feed does not carry orders, so they are
+inferred from the accounting identity that resting volume at a price can only
+change by execution, cancellation or submission: with
+$\delta = V_n(p) - V_{n-1}(p)$ between consecutive snapshots and $X_n(p)$ the
+volume printed at $p$ in the interval,
+%
+\begin{equation}
+\mathit{submitted}_n(p) = \max\{\delta + X_n(p),\, 0\}, \qquad
+\mathit{cancelled}_n(p) = \max\{-(\delta + X_n(p)),\, 0\}.
+\label{eq:ladder}
+\end{equation}
+%
+$L^{k0}$ (round-price share of submissions) and $L^{k0C}$ (cancellations over
+submissions at round prices) aggregate these to the stock-day, targeting the
+same quantities the paper builds from its feed. Two rules make
+equation~\eqref{eq:ladder} correct in practice --- match by price, never by
+level index, and count a price only where it is observable in both snapshots
+--- and Appendix~\ref{app:ladder} states them, the three known failure modes,
+and the hand-built order book that tests all three.
+
+\subsection{Estimation and inference}
+
+The daily specifications are two-way fixed-effects panels,
+%
+\begin{equation}
+y_{i,t} \;=\; \beta\, M^{B\mathit{Large}0}_{i,t-1}
+\;+\; \gamma\, y_{i,t-1}
+\;+\; \boldsymbol{\theta}' \mathbf{x}_{i,t-1}
+\;+\; \alpha_i \;+\; \delta_t \;+\; \varepsilon_{i,t},
+\label{eq:fe}
+\end{equation}
+%
+with standard errors clustered by stock and by day following
+\textcite{CameronGelbachMiller2011} --- with the same stock appearing on
+nearly every day and the same day covering a thousand stocks, one-way
+clustering is not conservative, it is wrong. The control vector
+$\mathbf{x}$ holds the relative tick, lagged log turnover, lagged log realised
+variance, lagged log spread, the overnight return, and the opening-digit
+contamination interactions of Section~\ref{sec:stylized}, timed to match the
+regressor. Including the lagged outcome makes \eqref{eq:fe} a dynamic panel;
+the induced bias is of order $1/T$ \parencite{Nickell1981} and negligible at
+$T$ near eighty, and the robustness section re-estimates with five lags so
+that ``the outcome's own history'' does not secretly mean one day. The
+estimator cross-check runs the same regression cross-sectionally day by day
+and averages the coefficients \parencite{FamaMacBeth1973} with
+\textcite{NeweyWest1987} standard errors over the daily series; agreement or
+disagreement between \eqref{eq:fe} and that average is informative about
+whether a relationship lives within stocks over time or between stocks, and
+Section~\ref{sec:robust} reports which it is here. Continuous variables are
+winsorised within stock at the 2.5th and 97.5th percentiles, the paper's
+convention; the intraday specifications replace $\alpha_i + \delta_t$ with
+stock-day and bucket-of-day effects and cluster by stock and by date.
 
 \subsection{What the measurement layer had to prove}
 
 The measure library is a single module, and the full panel build calls it
-unchanged. Validating it is therefore validating production code rather than a
-look-alike written for the occasion. It had to pass four things.
+unchanged; validating it is validating production code. It had to pass four
+things.
 
 \paragraph{Two hand-verified stock-days, to the second decimal.}
 Two stock-days were computed independently in advance and used as tripwires: one
@@ -114,16 +209,17 @@ produces a visibly wrong answer --- mistaking an execution for a cancellation,
 inventing flow when the ladder shifts a level, and counting depth that entered
 from beyond the visible window. Appendix~\ref{app:ladder} gives the construction.
 
-\paragraph{Magnitudes nobody tuned for.}
+\paragraph{Magnitudes nobody tuned for --- reported with their one miss.}
 The strongest check is external. Ohta reports a mean round-price share of
-submitted sell limit orders of 0.106 and a mean cancellation ratio of 0.806 over
-2010--2022. Run on this study's stock-days, the implementation returns 0.103--0.155 and
-0.58--0.83. Nothing in the algorithm was calibrated against those numbers and
-they come from a different sample period, so the agreement is evidence that the
-inference recovers the quantity the paper measures.
+submitted sell limit orders of 0.106 and a mean cancellation ratio of 0.806
+over 2010--2022. Run on this study's panel, the inference lands on the
+submission share to half a percentage point without calibration --- and
+overshoots the cancellation ratio (Appendix~\ref{app:ladder} carries the
+numbers). The agreement on levels is treated as validation; the overshoot on
+the ratio is treated as an open difference, not absorbed into the claim.
 
 \paragraph{Verdict.}
 The measurement layer reproduces two independently computed stock-days exactly,
 satisfies the identities it should satisfy, orders itself correctly across the
-liquidity spectrum, and lands on published magnitudes it was never shown. The
-results that follow rest on it.
+liquidity spectrum, and lands on the published submission-share magnitudes it
+was never shown. The results that follow rest on it.

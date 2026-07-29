@@ -48,6 +48,16 @@ write guard that keeps the pipeline out of the read-only source tree; the
 tick-resolution rule, with the three real stock-days that motivated it; and the
 ladder algorithm against a hand-built book.
 
+Two tests exist because their failure modes shipped once and were caught in
+audit rather than by the pipeline. The low-volatility indicator once
+degenerated to all-false through a window-scoping accident, which silently
+zeroed every opening-digit contamination dummy; the regression frame now
+refuses degenerate dummies, and a test pins the fix. And the sub-period
+robustness split was once hardcoded to a calendar date from an earlier study
+window, so that one half was empty and the other was the whole sample; the
+split is now derived from the panel's own dates, asserts that the halves
+partition the sample, and is tested on synthetic panels.
+
 \subsection{Two decisions worth recording}
 
 \paragraph{The tape outranks the schedule.}

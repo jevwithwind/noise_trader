@@ -1,21 +1,18 @@
 
 % =====================================================================
-\section{Discussion}
+\section{What to take to MTEC}
 \label{sec:discussion}
 % =====================================================================
 
 \subsection{What was found}
 
-Ohta's measures survive out of sample. On a year his study did not cover, round
-prices take 14.95\% of large-trade volume against 10.77\% of
-small-trade volume, the ordering his mechanism predicts holds firmly, finer grids
-and smaller stocks cluster more, and trades at round prices carry a positive
-price-impact premium of roughly the size he reports. None of this was tuned; the
-comparison was set up before the numbers were computed.
+Ohta's measures survive out of sample. On a year his study did not cover, round prices take 14.95\% of large-trade volume against 10.77\% of small-trade volume; the large-minus-small ordering his mechanism predicts holds (significant at the 1\% level); finer grids cluster more; the paper's size gradient does not appear in this screened universe --- documented with its tick-mix decomposition in Section~\ref{sec:stylized} rather than assumed away; and trades at round prices carry a positive impact premium of 0.43 basis points at one minute --- about 34\% of the paper's published magnitude, and transient where his horizon ends. None of the comparisons was tuned; the benchmarks were fixed before the numbers were computed.
 
-On the question he leaves open, clustering carries information about next-day liquidity beyond what that liquidity's own history already contains, on at least one of the two pre-specified outcomes. A placebo across the other last digits leaves 0 of eight at conventional significance, which is what separates the result from an artefact of how a concentration measure behaves.
+On the question the paper leaves open, clustering carries a measurable association with next-day trading costs beyond the outcome's own one-day lag (0.0188 on the log effective spread, $t=2.51$; depth complements it at -0.0441), and a placebo across the other last digits leaves 0 of eight at conventional significance. The robustness work bounds the claim: the pooled estimate is significant at the 5\% level, but it falls below conventional significance once the outcome's history means five lags rather than one; its sign reverses between the within-stock and cross-sectional designs. The within-day version --- 0.0189 ($t=8.80$) under stock-day and bucket fixed effects --- is the form of the relationship this study would defend without qualification.
 
-The book-based measures are the clearer contribution. Round prices hold 13.21\% of standing visible depth against a uniform benchmark of 10\%, which observes the stale inventory directly rather than after it has been taken, and in the panel standing round-price depth enters positively as predicted while the cancellation ratio enters negatively as predicted. The inferred submission and cancellation shares reproduce Ohta's published magnitudes without having been calibrated to them, which is the strongest external validation in the study.
+The book-based measures are the clearer contribution, read with discipline. Round prices hold 13.21\% of standing visible depth against a uniform 10\%, observing the stale inventory directly; standing round-price depth predicts round-price execution ($t=11.4$), though partly mechanically; and the inferred flow shares are nulls under severe ten-level censoring, which adjudicates nothing. The inferred submission shares land on the paper's levels without calibration (0.102 and 0.103 against his 0.106 and 0.105), which is the strongest external validation in the study; the cancellation ratios overshoot (0.91 and 0.90 against 0.806 and 0.812), a real difference --- more cancellation in 2025, or netting bias in the ten-level window --- that is reported as open rather than absorbed into the validation claim.
+
+The strategy demonstration prices the idea rather than selling it: gross -3.1 basis points a day against costs of 32.0 at daily rebalancing, and smoothing to five days cuts the costs to 13.5 without uncovering alpha. The economics point at execution, not selection.
 
 \subsection{What it is not}
 
@@ -34,38 +31,65 @@ it, and a genuine replication would need the ownership data.
 
 \paragraph{A narrow window on the book.}
 Ten visible levels sound like a lot and are not. On the stock-days examined in
-detail, 95--98\% of quoted volume sits beyond them. The inferred order flow
+detail, 81\% of quoted volume sits beyond them. The inferred order flow
 describes the neighbourhood of the best quote, which is where execution happens,
 but it is silent about the far book --- and the far book is exactly where Ohta
 argues the interesting stale orders sit.
 
-\paragraph{A sample shaped by a filter.}
+\paragraph{A sample shaped by its filters.}
 Excluding non-power-of-ten tick sizes removes the 0.5-yen grid, and with it much
-of the mid-priced TOPIX 500 population. This follows from the paper's filter
-rather than from a choice made here, but it means the regression sample is not
-the market.
+of the mid-priced TOPIX 500 population; the 9:10 rule thins the panel on
+shock days. Both follow from the paper's filters rather than from choices made
+here, but together they mean the regression sample is not the market, and is
+least representative exactly when markets are wildest.
 
-\subsection{What would come next}
+\subsection{Mapping the results onto the internship brief}
 
-Three things, in order of value. Obtaining the margin and ownership data would
-convert this from a test of the proxy into a joint test of the proxy and the
-mechanism. Extending to several years would allow the year fixed effects and
-sub-period splits that would show whether the relationship is stable, and would
-let the strategy demonstration have a genuine out-of-sample period. And the
-execution application is more promising than the alpha one: the impact premium at
-round prices is a statement about what an order pays, which points at scheduling
-and price-level selection within a rebalance that is happening regardless ---
-where a basis point of impact is a real saving and no forecasting is required.
+The brief --- a rebalancing strategy built on this indicator --- has three
+defensible readings, and the results here speak to each differently.
+
+\paragraph{(A) Execution-aware rebalancing.} The best-supported use. The
+round-price impact premium is positive, front-loaded and transient
+(Section~\ref{sec:stylized}), and the within-day clustering--spread link is
+the study's most robust regression (Section~\ref{sec:book}). Both are
+statements about \emph{what an order pays and when}, which is what an
+execution schedule consumes: avoid crossing at round levels, avoid resting own
+orders at them, time non-urgent legs away from high-clustering buckets. No
+forecasting is required and a basis point is a real saving.
+
+\paragraph{(B) A signal tilt.} The least supported. The daily association is
+real but the pooled estimate is significant at the 5\% level, but it falls below conventional significance once the outcome's history means five lags rather than one; its sign reverses between the within-stock and cross-sectional designs,
+the cross-sectional sign points the other way (the Fama--MacBeth estimate), and
+the costed demonstration in Section~\ref{sec:strategy} shows the daily
+version pays its gross away several times over while the smoothed version has
+nothing left to pay with. If a tilt is wanted anyway, it needs months of
+holding period, size discipline, and an out-of-sample year.
+
+\paragraph{(C) Rebalance-trigger design.} Untested here and testable with
+this exact pipeline: modulate rebalancing bands or urgency by the residualised
+clustering state, on the argument that rebalancing is liquidity provision and
+the counterparty is more likely uninformed when noise traders are active. The
+panel and cost machinery this prototype builds is the spine that experiment
+needs.
+
+\paragraph{Data to ask for on day one.} Margin-trading balances (the
+\emph{nisshoukin} securities-finance series) and ownership shares would
+convert the proxy test into a joint test of proxy and mechanism; a second year
+of tape would give the sub-period and out-of-sample splits this sample is too
+short for; and the full FLEX feed would lift the ten-level censoring that
+mutes the order-flow variables.
 
 \subsection{Conclusion}
 
 The sentence at the end of Ohta (2026) proposes that price clustering can serve
-as an observable proxy for noise-trader activity, and that the relationship
-between that activity, price formation and liquidity could then be studied at
-daily or higher frequency. On the 2025 Tokyo Stock Exchange tape, it can be, and
-it is: the measures replicate out of sample, they carry information about
-liquidity that the liquidity's own history does not, and the order book shows the
-standing round-price inventory the mechanism requires. What the measures cannot
-yet do is support a standalone trading rule, for the ordinary reason that the
-costs exceed the signal --- which is itself the most useful thing this prototype
-has to say about how such an indicator should be used.
+as an observable proxy for noise-trader activity, and that its relationship to
+price formation and liquidity could then be studied at daily or shorter
+frequency. On the January--April 2025 Tokyo Stock Exchange tape the proposal survives its
+first contact with data the paper never saw: the measures replicate, the
+within-day liquidity relationship is robust, and the standing round-price
+inventory the mechanism requires is directly visible in the book. The daily
+version of the relationship is thinner --- the pooled estimate is significant at the 5\% level, but it falls below conventional significance once the outcome's history means five lags rather than one; its sign reverses between the within-stock and cross-sectional designs --- and the indicator
+does not support a standalone trading rule at this horizon, because the costs
+exceed the signal. The most defensible use of the measure is the one that needs
+no forecast at all: knowing what a round-price execution costs, and scheduling
+around it.

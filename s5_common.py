@@ -89,10 +89,25 @@ def build_frame(df: pl.DataFrame, winsorize: bool = True) -> pl.DataFrame:
         .then(pl.col("open_px") / pl.col("prev_close") - 1.0).otherwise(None))
 
     # Low-volatility indicator, defined cross-sectionally within each day.
+    # Two steps on purpose. Chaining `.median().over("date")` inside an
+    # expression that is later windowed by `.over("ticker")` re-scopes the
+    # inner window to the outer partition, so the "cross-sectional median"
+    # becomes the row's own value and the comparison is x < x: identically
+    # False. That silent degeneracy shipped once -- every contamination dummy
+    # was zero and pyfixest dropped them as collinear without changing any
+    # other number. `opening_digit_dummies` now refuses a degenerate set and
+    # tests/test_regression_frame.py pins the fix.
     if "rv5" in df.columns:
+        df = df.with_columns(_day_med_rv5=pl.col("rv5").median().over("date"))
+        df = df.with_columns(lowvol_now=pl.col("rv5") < pl.col("_day_med_rv5"))
         df = df.with_columns(
-            lowvol_l1=(pl.col("rv5") < pl.col("rv5").median().over("date"))
-            .shift(1).over("ticker"))
+            lowvol_l1=pl.when(pl.col("prev_ticker_ok"))
+            .then(pl.col("lowvol_now").shift(1).over("ticker")).otherwise(None)
+        ).drop("_day_med_rv5")
+    if "open_digit" in df.columns:
+        df = df.with_columns(
+            open_digit_l1=pl.when(pl.col("prev_ticker_ok"))
+            .then(pl.col("open_digit").shift(1).over("ticker")).otherwise(None))
 
     lag_me = ["m_b_large0", "m_s_large0", "m_b_small0", "m_s_small0", "m0_all",
               "ln_effsprd", "ln_qspread", "imp60_bps", "imp1_bps", "imp300_bps",
@@ -123,23 +138,72 @@ def build_frame(df: pl.DataFrame, winsorize: bool = True) -> pl.DataFrame:
     return df
 
 
-def opening_digit_dummies(df: pl.DataFrame) -> list[str]:
-    """The interaction of the opening digit with low volatility (Ohta's control).
+def opening_digit_dummies(df: pl.DataFrame, lagged: bool = True
+                          ) -> tuple[list[str], pl.DataFrame]:
+    """Ohta's contamination control: opening digit interacted with low volatility.
 
-    Digit 0 is the omitted category, so coefficients read against it.
+    The contamination lives in the clustering measure itself, so the control
+    must carry the same timing as the regressor it cleans. Specifications
+    whose regressor is $M_{t-1}$ take the lagged interaction
+    $D^n_{t-1} \\times \\mathit{Lowvol}_{t-1}$ (``lagged=True``); the
+    contemporaneous specification takes the same-day one. Digit 0 is the
+    omitted category, so coefficients read against it.
+
+    Refuses a silently degenerate set: if every interaction is zero on a frame
+    too large for that to be real, something upstream broke -- that failure
+    shipped once, with the nine dummies dropped as collinear and nothing in
+    the output to show it -- and a loud error beats a quiet no-op.
     """
+    dig = "open_digit_l1" if lagged else "open_digit"
+    low = "lowvol_l1" if lagged else "lowvol_now"
+    suffix = "" if lagged else "_now"
     names = []
     for d in range(1, 10):
-        n = f"d{d}_lowvol"
-        df_col = ((pl.col("open_digit") == d) & pl.col("lowvol_l1").fill_null(False))
+        n = f"d{d}_lowvol{suffix}"
+        df_col = ((pl.col(dig) == d) & pl.col(low).fill_null(False))
         df = df.with_columns(**{n: df_col.cast(pl.Float64)})
         names.append(n)
+    if df.height >= 1000 and all(float(df[n].sum()) == 0.0 for n in names):
+        raise AssertionError(
+            "opening-digit x low-volatility dummies are identically zero; "
+            f"'{dig}' or '{low}' is degenerate upstream")
     return names, df
 
 
+def sample_halves(df: pl.DataFrame, date_col: str = "date"
+                  ) -> list[tuple[str, pl.DataFrame]]:
+    """Split the panel into two contiguous halves at the median trading date.
+
+    Derived from the dates actually present, never from a hardcoded calendar.
+    The one time this was hardcoded, the study window later moved and the
+    "first half" silently became empty while the "second half" became the
+    whole sample -- a robustness check that no longer checked anything. The
+    assertion makes that impossible to ship again.
+    """
+    ds = (df.select(pl.col(date_col).cast(pl.Utf8).alias("d"))
+            .unique().sort("d")["d"].to_list())
+    if len(ds) < 4:
+        return []
+    cut = ds[len(ds) // 2]
+    dcol = pl.col(date_col).cast(pl.Utf8)
+    h1, h2 = df.filter(dcol < cut), df.filter(dcol >= cut)
+    assert h1.height > 0 and h2.height > 0 \
+        and h1.height + h2.height == df.height, \
+        "sample halves must be non-empty and partition the sample"
+    return [(f"H1 ({ds[0][:7]} to {ds[len(ds)//2 - 1][:7]})", h1),
+            (f"H2 ({cut[:7]} to {ds[-1][:7]})", h2)]
+
+
 def fit(df: pl.DataFrame, y: str, xs: list[str], *, entity="ticker", time="date",
+        cluster: tuple[str, str] | None = None,
         backend: str = "pyfixest") -> dict:
-    """Two-way fixed effects with standard errors clustered on both margins."""
+    """Two-way fixed effects with standard errors clustered on both margins.
+
+    `cluster` names the two clustering dimensions when they differ from the
+    fixed-effect dimensions -- the intraday design absorbs stock-day and
+    bucket effects but clusters by stock and by date, since dependence runs
+    along those margins, not along the 10 bucket labels.
+    """
     # Dedupe while preserving order: an outcome's own lag can also appear in the
     # control set, and polars rejects a duplicated projection outright.
     def uniq(seq):
@@ -150,8 +214,9 @@ def fit(df: pl.DataFrame, y: str, xs: list[str], *, entity="ticker", time="date"
                 out.append(c)
         return out
 
+    cl = tuple(cluster) if cluster else (entity, time)
     xs = uniq([c for c in xs if c != y])
-    cols = uniq([y] + xs + [entity, time])
+    cols = uniq([y] + xs + [entity, time] + list(cl))
     d = df.select([c for c in cols if c in df.columns]).drop_nulls()
     have = [x for x in xs if x in d.columns]
     if d.height < 200 or not have:
@@ -171,14 +236,14 @@ def fit(df: pl.DataFrame, y: str, xs: list[str], *, entity="ticker", time="date"
                          f"{n_multi} with repeated observations"}
 
     pdf = d.to_pandas()
-    pdf[entity] = pdf[entity].astype(str)
-    pdf[time] = pdf[time].astype(str)
+    for c in {entity, time, *cl}:
+        pdf[c] = pdf[c].astype(str)
 
     try:
         if backend == "pyfixest":
             import pyfixest as pf
             fml = f"{y} ~ " + " + ".join(have) + f" | {entity} + {time}"
-            res = pf.feols(fml, data=pdf, vcov={"CRV1": f"{entity}+{time}"})
+            res = pf.feols(fml, data=pdf, vcov={"CRV1": f"{cl[0]}+{cl[1]}"})
             coef, se = res.coef().to_dict(), res.se().to_dict()
             return {"n": int(res._N), "coef": coef, "se": se,
                     "t": {k: coef[k] / se[k] if se.get(k) else float("nan")

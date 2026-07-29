@@ -53,9 +53,11 @@ which reads NEEDS TICST120 zips into 95-column frames and runs the two-stage
   buyer-initiated, "At Buy Quote" = seller-initiated (verified 100/0 on ~76k trades). Never
   Lee-Ready. Stop-quote variants decode as `Unknown (116/148/216/248)` and are mapped explicitly.
 - **Tick authority** -- the coded JPX yobine tables are primary; per-stock-day empirical
-  inference from the tape is the cross-check. A tape *finer* than the table wins (membership
-  drift); a tape *coarser* than the table does not (illiquid names simply skip grid points).
-  Override rate must stay under 1% of stock-days or the run halts.
+  inference from the tape is the cross-check. A tape *finer* than the table always wins
+  (membership drift). A tape *coarser* than the table wins only when the day shows at least
+  `MIN_PRICES_FOR_COARSE` (8) distinct prices all on the coarser lattice -- that is evidence
+  of the real grid (e.g. a stock that left TOPIX500), while fewer distinct prices is sparsity
+  and the table stands. Override rate must stay under 1% of stock-days or the run halts.
 - **Zaraba-only measures** -- opening and closing auctions excluded from every measure. Auction
   prices are not set by individual limit orders, and the closing itayose is one giant
   volume-weighted print that moves a daily measure by percentage points.

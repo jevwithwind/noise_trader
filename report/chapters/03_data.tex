@@ -85,11 +85,12 @@ attrition.
 
 \textbf{Coverage.} The panel covers 78 trading days across 4 consecutive calendar months, from 2025-01-06 to 2025-04-30, rather than the full 243-day year. Ingesting and processing the complete tape for this universe takes substantially longer than the time available for a prototype, and a contiguous block was chosen over scattered months so that every lag in the panel is a genuine one-day lag.
 
-That choice has a cost worth naming. Four consecutive months is one market regime, not a cross-section of them, and this particular block is not a quiet one: April 2025 delivered almost twice January's message volume. The half-sample split in Section~\ref{sec:robust} is doing real work here rather than serving as a formality. Nothing about the pipeline changes with more months --- the same command extends it and the report regenerates from whatever the panel contains --- but the results below describe this stretch of 2025, not the year.
+That choice has a cost worth naming. Four consecutive months is one market regime, not a cross-section of them, and this particular block is not a quiet one. Sub-period stability is therefore tested directly, on halves derived from the sample itself, and the verdict lives with the evidence in Section~\ref{sec:robust} rather than being assumed here. Nothing about the pipeline changes with more months --- the same command extends it and this document regenerates from whatever the panel contains --- but the results below describe this stretch of 2025, not the year.
+
+\paragraph{When the filters bite.} Ohta's 9:10 first-trade rule removes days that opened late after a price-limit halt. On an ordinary day that is a handful of names; on a market-wide shock it is a large slice of the universe at once. The thinnest days of this sample make the point: 627 of 1,165 candidate stocks survive on 2025-04-07 and 727 of 1,165 on 2025-04-10, against 86\% on the median day. The panel therefore thins exactly when noise-trader activity was most extreme, and every daily estimate below is conditional on a day that opened normally. This is the paper's own admission rule, inherited deliberately -- but over four months containing such an episode it shapes the sample, and a reader comparing April to January should know it.
 
 \paragraph{Verdict.}
-The sample is Ohta's, reconstructed on a year he did not have. Its one
-distinctive feature --- the exclusion of the 0.5-yen grid and therefore of much
-of the mid-priced large-cap population --- follows from his filter rather than
-from a choice made here, and is carried explicitly into the interpretation of
-every result below.
+The sample is Ohta's, reconstructed on a year he did not have. Its two
+distinctive features --- the exclusion of the 0.5-yen grid, and the thinning on
+shock days --- both follow from his filters rather than from choices made here,
+and both are carried explicitly into the interpretation of every result below.

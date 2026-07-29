@@ -76,7 +76,12 @@ def main() -> int:
                     continue
                 xs = [xname, f"{y}_l1", "ln_yenvol"]
                 xs = [c for c in xs if c in df.columns]
-                r = S5.fit(df, y, xs, entity="stockday", time="bucket_s")
+                # Fixed effects absorb stock-day and bucket-of-day; the
+                # clustering dimensions are stock and date, where the
+                # dependence actually lives -- ten bucket labels are far too
+                # few clusters to support a variance estimate on that margin.
+                r = S5.fit(df, y, xs, entity="stockday", time="bucket_s",
+                           cluster=("ticker", "date"))
                 b, se = S5.cell(r, xname)
                 t = r.get("t", {}).get(xname, float("nan"))
                 print(f"{lab:<28} {xlab:<22} {b:<14} {se:<12} t={t:>6.2f}  "
@@ -96,7 +101,8 @@ def main() -> int:
                 ofi_z=(pl.col("ofi") - pl.col("ofi").mean()) / pl.col("ofi").std())
             d = d.with_columns(ofi_x_high=pl.col("ofi_z") * pl.col("high_m"))
             r = S5.fit(d, "ret_mid_bps", ["ofi_z", "ofi_x_high", "high_m"],
-                       entity="stockday", time="bucket_s")
+                       entity="stockday", time="bucket_s",
+                       cluster=("ticker", "date"))
             for v in ("ofi_z", "ofi_x_high"):
                 b, se = S5.cell(r, v, nd=4)
                 t = r.get("t", {}).get(v, float("nan"))

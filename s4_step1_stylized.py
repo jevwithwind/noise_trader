@@ -108,8 +108,13 @@ def main() -> int:
                   "ten, since the last-digit construction is otherwise undefined. "
                   "Harris (1991) predicts more clustering on finer grids.")
 
-        # ---- size: clustering is a small-cap phenomenon
-        print("\nby size quintile (1 = smallest):")
+        # ---- size: the paper finds clustering falling with capitalisation.
+        # Two views per quintile: pooled across tick regimes (comparable to the
+        # paper's table) and the 1-yen grid alone. The pooled view mixes
+        # regimes -- 0.1-yen days cluster more for a mechanical reason and are
+        # concentrated in the largest names -- so the within-grid column is
+        # what separates a size effect from tick composition.
+        print("\nby size quintile (1 = smallest; pooled and 1-yen grid only):")
         qrows = []
         for q in range(1, 6):
             sub = df.filter(pl.col("size_q") == q)
@@ -117,19 +122,37 @@ def main() -> int:
                 continue
             mu, se, n = S4.twoway_cluster_mean(sub, "m_b_large0")
             m0, _, _ = S4.twoway_cluster_mean(sub, "m0_all")
+            fine_share = float(sub["fine_tick_day"].cast(pl.Float64).mean())
+            t10 = sub.filter(pl.col("tick10") == 10)
+            if t10.height >= 200:
+                mu10, se10, n10 = S4.twoway_cluster_mean(t10, "m_b_large0")
+            else:
+                mu10, se10, n10 = None, None, t10.height
             print(f"  Q{q}: M0 {100*m0:6.2f}%  M^BLarge0 {100*mu:6.2f}% "
-                  f"({100*se:.3f})  n={n:,}")
+                  f"({100*se:.3f})  1-yen only "
+                  f"{('%6.2f%%' % (100*mu10)) if mu10 is not None else '   n/a'}  "
+                  f"fine-tick share {100*fine_share:4.1f}%  n={n:,}")
             qrows.append([f"Q{q}", f"{100*m0:.2f}", f"{100*mu:.2f}",
-                          f"({100*se:.3f})", f"{n:,}"])
-            payload[f"size_q{q}"] = {"m0": m0, "m_b_large0": mu, "se": se, "n": n}
+                          f"({100*se:.3f})",
+                          f"{100*mu10:.2f}" if mu10 is not None else "--",
+                          f"{100*fine_share:.1f}", f"{n:,}"])
+            payload[f"size_q{q}"] = {"m0": m0, "m_b_large0": mu, "se": se, "n": n,
+                                     "m_b_large0_t10": mu10, "se_t10": se10,
+                                     "n_t10": n10, "fine_share": fine_share}
         S4.latex_table(
             os.path.join(S4.TABLES, "t_size.tex"),
             "Price clustering by market-capitalisation quintile", "tab:size",
-            ["Quintile", "$M^{0}$ (\\%)", "$M^{BLarge0}$ (\\%)", "SE", "Stock-days"],
+            ["Quintile", "$M^{0}$ (\\%)", "$M^{BLarge0}$ (\\%)", "SE",
+             "$M^{BLarge0}$, \\textyen 1 grid (\\%)", "0.1-tick share (\\%)",
+             "Stock-days"],
             qrows,
             notes="Quintiles are formed once per stock on its median market "
                   "capitalisation over the sample, so a stock does not drift between "
-                  "quintiles as its price moves. Q1 is the smallest.")
+                  "quintiles as its price moves. Q1 is the smallest. The pooled "
+                  "columns mix tick regimes; the \\textyen 1-grid column removes "
+                  "the mechanical elevation that 0.1-yen days carry, and the "
+                  "0.1-tick share column shows how unevenly those days fall "
+                  "across quintiles.")
 
         # ---- round-price depth: the measure the paper's data could not support
         if "rdepth_ask0" in df.columns and df["rdepth_ask0"].is_not_null().any():
@@ -154,10 +177,41 @@ def main() -> int:
         rho = (float(d.select(pl.corr("m_b_large0", "lag")).item())
                if d.height > 30 else float("nan"))
         print(f"\nfirst-order autocorrelation of M^BLarge0 within stock: {rho:.3f}")
-        print("  (high persistence means the identifying variation in a "
-              "stock-and-day fixed-effects panel is smaller than the row count "
-              "suggests -- reported so the reader can judge the power)")
+        if rho == rho and rho >= 0.5:
+            print("  (high persistence: the identifying variation in a "
+                  "stock-and-day fixed-effects panel is smaller than the row "
+                  "count suggests)")
+        elif rho == rho:
+            print("  (low persistence: the daily measure is mostly transitory "
+                  "-- measurement noise plus genuine day effects -- which any "
+                  "daily-refreshed use of it inherits as turnover)")
         payload["ar1_m_b_large0"] = rho
+
+        # ---- per-date coverage, so the report can say when the sample thins.
+        # Ohta's 9:10 first-trade filter removes exactly the days that opened
+        # late after a limit halt, and on a market-wide shock that is a large
+        # slice of the universe at once. The report discloses the worst dates
+        # rather than leaving the reader to infer them from row counts.
+        full = pl.read_parquet(S4.PANEL)
+        cov = (full.group_by("date")
+               .agg(attempted=pl.len(),
+                    in_final=pl.col("in_sample_final").cast(pl.Int32).sum(),
+                    open910=pl.col("pass_open910").cast(pl.Int32).sum())
+               .with_columns(share=pl.col("in_final") / pl.col("attempted"))
+               .sort("share"))
+        worst = cov.head(3).sort("date")
+        payload["low_coverage_dates"] = [
+            {"date": str(r["date"]), "attempted": int(r["attempted"]),
+             "in_final": int(r["in_final"]), "open910": int(r["open910"]),
+             "share": float(r["share"])}
+            for r in worst.iter_rows(named=True)]
+        med_share = float(cov["share"].median())
+        payload["median_coverage_share"] = med_share
+        print("\nlowest-coverage dates (in-sample stocks / attempted):")
+        for r in payload["low_coverage_dates"]:
+            print(f"  {r['date']}: {r['in_final']:,} of {r['attempted']:,} "
+                  f"({100*r['share']:.0f}%; {r['open910']:,} passed the 9:10 rule)"
+                  f"   [median day: {100*med_share:.0f}%]")
 
         C.ensure_dir(OUT)
         C.atomic_json(os.path.join(OUT, "stylized.json"), payload)

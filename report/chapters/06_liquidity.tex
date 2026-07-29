@@ -1,6 +1,6 @@
 
 % =====================================================================
-\section{Clustering and next-day liquidity}
+\section{Finding: clustering and next-day liquidity}
 \label{sec:liquidity}
 % =====================================================================
 
@@ -21,19 +21,24 @@ so a stock that is illiquid and clustered today was probably both yesterday, and
 the coefficient partly recovers that.
 
 The \emph{dynamic} column adds the outcome's own lag, and it is the one the
-argument rests on. Its coefficient answers a sharper question --- does yesterday's
-clustering say anything about today's liquidity that \emph{yesterday's
-liquidity} did not already say? With 78 time periods the resulting
-dynamic-panel bias is of order $1/T$ and can be neglected.
+argument rests on. Its coefficient answers a sharper question --- does
+yesterday's clustering say anything about today's liquidity that the
+outcome's \emph{own one-day lag} did not already say? With 78 time
+periods the resulting dynamic-panel bias is of order $1/T$
+\parencite{Nickell1981} and can be neglected. One lag is not the same as
+``the outcome's history'', so Section~\ref{sec:robust} re-asks the question
+against five lags.
 
 \subsection{What the panel says}
 
 The coefficient on lagged clustering in the effective-spread regression is
-0.0192, significant at the 1\% level. Read economically, a one-standard-deviation
+0.0188, significant at the 5\% level. Read economically, a one-standard-deviation
 increase in the round-price share of large-trade volume is associated with an
 effective spread about 0.2\% higher the following day. For the price-impact outcome the
 coefficient is
-0.0432, not statistically distinguishable from zero.
+0.0417, not statistically distinguishable from zero. Depth at the best quote moves the
+complementary way (-0.0441, significant at the 1\% level): the day after heavy
+round-price trading quotes are wider and thinner.
 
 \paragraph{Which way the open question falls.}
 Section~\ref{sec:intro} set out two incompatible predictions. On the
@@ -51,10 +56,11 @@ is not distinguishable from zero, as a direction the data do not resolve.
 Table~\ref{tab:rq2alt} substitutes the other clustering measures. If the
 relationship works through the channel Ohta describes --- large orders taking
 stale round-price limit orders --- it should live in the large-trade measures and
-not in the small-trade ones, which Section~\ref{sec:stylized} showed barely
-depart from the uniform benchmark in the first place. This is a weaker test than
+not in the small-trade ones. This is a weaker test than
 the placebo in Section~\ref{sec:robust}, but it uses the paper's own internal
-contrast.
+contrast, and it deserves an explicit reading rather than a table alone.
+
+The contrast the mechanism predicts does not appear. Per standard deviation of the sorting measure, the small-trade share moves next-day spreads by 0.16\% against the large-trade share's 0.23\% --- comparable, not smaller --- and the pooled measure $M^{0}$ carries the largest coefficient of all (0.0418, $t=3.41$). Elevated round-price trading of any kind predicts wider spreads; the specific stale-limit-order channel, which lives in large trades, is not what separates the measures here. That reads as a caution against the mechanism interpretation of the daily association, not against the association itself.
 
 \paragraph{Verdict.}
-Clustering carries information about next-day liquidity that the outcome's own history does not, in a specification demanding enough to absorb every stock-level and market-wide effect. The association is descriptive: no experiment, and no claim that intervening on clustering would move spreads.
+Clustering carries a measurable association with next-day liquidity beyond the outcome's own one-day lag, in a specification that absorbs every stock-level and market-wide effect. Section~\ref{sec:robust} bounds how hard this can be leaned on: the pooled estimate is significant at the 5\% level, but it falls below conventional significance once the outcome's history means five lags rather than one; its sign reverses between the within-stock and cross-sectional designs. The association is descriptive: no experiment, and no claim that intervening on clustering would move spreads.

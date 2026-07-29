@@ -1,6 +1,6 @@
 
 % =====================================================================
-\section{Robustness}
+\section{How fragile is the daily finding? Robustness}
 \label{sec:robust}
 % =====================================================================
 
@@ -24,30 +24,29 @@ digit predicts liquidity equally well, then nothing here is about round numbers
 interpretation collapses.
 
 Rebuilding the measure on each of digits one through nine and re-running the same
-regression, the round-price coefficient is 0.0192
-($t = 2.58$), and 0 of the nine placebo digits reach
+regression, the round-price coefficient is 0.0188
+($t = 2.51$), and 0 of the nine placebo digits reach
 conventional significance. Digit five is flagged separately in
 Table~\ref{tab:placebo} because half-way points are semi-focal and attract some
 of the same behaviour --- treating it as a pure placebo would be stacking the
 deck.
 
-\subsection{Subsamples and an alternative estimator}
+\subsection{Subsamples, deeper dynamics, and an alternative estimator}
 
 \input{tables/t_robust}
 
-Table~\ref{tab:robust} re-estimates the headline specification on subsamples.
-The size-quintile rows matter for interpretation: the mechanism is about
-retail-heavy, less closely watched stocks, so the relationship should be stronger
-in smaller ones. The half-year rows test whether a single episode is doing the
-work. The 0.1-yen row estimates on the days excluded from the main sample.
+Table~\ref{tab:robust} re-estimates the headline specification on subsamples
+and under two changes of specification. Across size quintiles the point estimates bracket the baseline and 1 of five reach significance on their own; at a fifth of the sample each, individual significance is not the expectation, and the informative fact is the absence of a clean size pattern in where the association lives.
 
-A Fama--MacBeth cross-check estimates the relationship separately in each daily
-cross-section and averages, with Newey--West standard errors over the resulting
-series. It gives -0.0412 with $t = -6.44$ over
-77 cross-sections. It is reported because it makes completely
-different assumptions about the correlation structure than two-way clustering
-does, and agreement between them is worth more than either alone.
+\paragraph{Sub-periods.} Neither half is individually significant (0.0164 and 0.0037); at half the sample each, that is expected under the pooled estimate as well as under a null, and the split is uninformative on its own. Removing 2025-04-03 to 2025-04-11 --- the sample's most violent week --- leaves the estimate at 0.0189 (significant at the 5\% level), so the crash days themselves are not the driver; whatever weakened the second half is spread across it.
+
+\paragraph{Deeper dynamics.} Against five lags of the outcome the coefficient falls to 0.0124 (significant at the 10\% level). The claim ``adds information beyond the outcome's own history'' therefore depends on history meaning one day; a richer dynamic absorbs much of it.
+
+\paragraph{An estimator with different assumptions.}
+A Fama--MacBeth cross-check \parencite{FamaMacBeth1973} estimates the
+relationship separately in each daily cross-section and averages the estimates,
+with Newey--West standard errors \parencite{NeweyWest1987} over the
+resulting series. It gives -0.0412 with $t = -6.44$ over 77 cross-sections --- \emph{opposite} in sign to the panel estimate, and reliably so. The two designs answer different questions: the fixed-effects panel compares a stock with its own recent past, while the daily cross-sections compare stocks with each other. The positive spread association is a within-stock phenomenon; across stocks, conditional on yesterday's spread, more-clustered names trade marginally tighter. A cross-check that disagrees is information about where the identification lives, not corroboration --- any use of this indicator that ranks stocks against each other is using the sign that points the other way.
 
 \paragraph{Verdict.}
-The result is specific to the round-price digit rather than to the shape of the
-measure, and it survives changes in subsample and estimator.
+The result is specific to the round-price digit rather than to the shape of the measure. The daily association itself is thinner than a pooled table suggests: the pooled estimate is significant at the 5\% level, but it falls below conventional significance once the outcome's history means five lags rather than one; its sign reverses between the within-stock and cross-sectional designs. The within-day relationship of Section~\ref{sec:book} is the finding that survives every re-specification tried here, and conclusions are weighted accordingly.

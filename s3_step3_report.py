@@ -72,10 +72,14 @@ def main() -> int:
             lines += [
                 "## Tick-size resolution",
                 "",
-                "The coded JPX schedule is authoritative; the tape is consulted as "
-                "a cross-check, and wins only when it is *finer* than the table "
-                "(which means index membership moved). A coarser tape means "
-                "nothing, since an illiquid stock simply skips grid points.",
+                "The coded JPX schedule is primary; the tape is consulted as a "
+                "cross-check. A tape *finer* than the table always wins (index "
+                "membership moved). A tape *coarser* than the table wins only "
+                "when the day shows enough distinct prices, all on the coarser "
+                "lattice, for that to be evidence of the real grid rather than "
+                "sparsity -- forcing the table's finer tick onto such a day "
+                "reads as 50-100% clustering, which is the failure this rule "
+                "exists to prevent.",
                 "",
             ] + [f"- `{k}`: {v:,} stock-days" for k, v in sorted(src.items())] + [""]
         if "n_unmapped_exec_type" in df.columns:

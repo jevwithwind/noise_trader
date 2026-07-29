@@ -21,7 +21,7 @@ Opening digit & Low volatility (\%) & High volatility (\%) & Difference & Stock-
 \bottomrule
 \end{tabular}
 \begin{tablenotes}[flushleft]\footnotesize
-\item Mean $M^{0}$ by the last digit of the opening price, split on whether the previous day's realised variance was below that day's cross-sectional median. On quiet days a stock that opens far from a round price may never reach one, which depresses the measure mechanically. Every regression in this study therefore controls for the interaction of the opening-digit dummies with the low-volatility indicator, as Ohta (2026) does.
+\item Mean $M^{0}$ by the last digit of the opening price, split on whether the \emph{same day's} realised variance was below that day's cross-sectional median. On quiet days a stock that opens far from a round price may never reach one, which depresses the measure mechanically. A median split is a diluted version of the paper's stuck-price notion -- the median day still moves through many grid points -- so Table~\ref{tab:openingstuck} repeats the comparison on the bottom decile of the day's price range, where the mechanism has to show if it is real. The regressions control for the opening-digit by low-volatility interactions with the timing matched to the regressor.
 \end{tablenotes}
 \end{threeparttable}
 \end{table}

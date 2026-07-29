@@ -66,25 +66,78 @@ def main() -> int:
              "Difference", "Stock-days, low vol."],
             rows,
             notes="Mean $M^{0}$ by the last digit of the opening price, split on "
-                  "whether the previous day's realised variance was below that "
-                  "day's cross-sectional median. On quiet days a stock that opens "
-                  "far from a round price may never reach one, which depresses the "
-                  "measure mechanically. Every regression in this study therefore "
-                  "controls for the interaction of the opening-digit dummies with "
-                  "the low-volatility indicator, as Ohta (2026) does.")
+                  "whether the \\emph{same day's} realised variance was below "
+                  "that day's cross-sectional median. On quiet days a stock that "
+                  "opens far from a round price may never reach one, which "
+                  "depresses the measure mechanically. A median split is a "
+                  "diluted version of the paper's stuck-price notion -- the "
+                  "median day still moves through many grid points -- so "
+                  "Table~\\ref{tab:openingstuck} repeats the comparison on the "
+                  "bottom decile of the day's price range, where the mechanism "
+                  "has to show if it is real. The regressions control for the "
+                  "opening-digit by low-volatility interactions with the timing "
+                  "matched to the regressor.")
 
         # A compact summary: how much of the measure's variation the contamination
         # alone can account for.
         near = df.filter(pl.col("open_digit").is_in([9, 0, 1]))
         far = df.filter(pl.col("open_digit").is_in([4, 5, 6]))
-        for lab, sub in (("all days", df),):
-            pass
         for lab, mask in (("low volatility", True), ("high volatility", False)):
             n_a, _, _ = S4.twoway_cluster_mean(near.filter(pl.col("lowvol") == mask), "m0_all")
             f_a, _, _ = S4.twoway_cluster_mean(far.filter(pl.col("lowvol") == mask), "m0_all")
             print(f"\nopening near a round price (9,0,1) vs far (4,5,6), {lab}: "
                   f"{100*n_a:.2f}% vs {100*f_a:.2f}%  (gap {100*(n_a-f_a):+.2f} pp)")
             payload[f"nearfar_{mask}"] = {"near": n_a, "far": f_a}
+
+        # ---- the paper's actual conditioning: stuck prices, not below-median
+        # volatility. Ohta's Table 2 mechanism is a day whose price barely
+        # moves, and a median split waters that down -- half the market still
+        # traverses plenty of grid points. The bottom decile of the day's
+        # price range is where the contamination has to show if it is real:
+        # a stuck day that opened at digit 0 can print almost nothing else,
+        # and a stuck day that opened at digits 4--7 can print almost no
+        # round price at all.
+        stuck_df = df.filter(pl.col("pmax").is_not_null()
+                             & pl.col("pmin").is_not_null()
+                             & (pl.col("open_px") > 0))
+        stuck_df = stuck_df.with_columns(
+            rng=(pl.col("pmax") - pl.col("pmin")) / pl.col("open_px"))
+        stuck_df = stuck_df.with_columns(
+            stuck=pl.col("rng") <= pl.col("rng").quantile(0.1).over("date"))
+        print("\nM0 by opening digit on stuck days (bottom decile of daily "
+              "range) versus mobile days:")
+        print(f"{'digit':>6} {'stuck':>10} {'mobile':>10} {'gap':>8} {'n stuck':>9}")
+        srows = []
+        for d in range(10):
+            lo = stuck_df.filter((pl.col("open_digit") == d) & pl.col("stuck"))
+            hi = stuck_df.filter((pl.col("open_digit") == d) & ~pl.col("stuck"))
+            if lo.height < 50 or hi.height < 50:
+                continue
+            a, _, _ = S4.twoway_cluster_mean(lo, "m0_all")
+            b = float(hi["m0_all"].drop_nulls().mean())
+            print(f"{d:>6} {100*a:>10.2f} {100*b:>10.2f} {100*(a-b):>+8.2f} "
+                  f"{lo.height:>9,}")
+            srows.append([str(d), f"{100*a:.2f}", f"{100*b:.2f}",
+                          f"{100*(a-b):+.2f}", f"{lo.height:,}"])
+            payload[f"stuck_digit{d}"] = {"stuck": a, "mobile": b,
+                                          "n_stuck": lo.height}
+        if srows:
+            S4.latex_table(
+                os.path.join(S4.TABLES, "t_opening_stuck.tex"),
+                "The contamination on genuinely stuck days",
+                "tab:openingstuck",
+                ["Opening digit", "Stuck days (\\%)", "Mobile days (\\%)",
+                 "Difference", "Stock-days, stuck"],
+                srows,
+                notes="Mean $M^{0}$ by the last digit of the opening price. "
+                      "Stuck means the day's high--low range, scaled by the "
+                      "opening price, falls in the bottom decile of that day's "
+                      "cross-section -- the closest available analogue of "
+                      "Ohta's Table 2 conditioning. The signature of the "
+                      "mechanical contamination is a positive difference at "
+                      "digit zero and negative differences in the middle "
+                      "digits: a stuck day prints mostly its opening "
+                      "neighbourhood, whatever digit that happens to be.")
 
         C.ensure_dir(OUT)
         C.atomic_json(os.path.join(OUT, "opening.json"), payload)

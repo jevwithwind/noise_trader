@@ -131,7 +131,12 @@ on. Ohta reports a mean $L^{S0}$ of 0.106 and a mean $L^{S0C}$ of 0.806 across
 
 \input{chapters/_ladder_validation}
 
-Agreement at this level is not something a broken implementation produces by
-accident. The two rules in Section~\ref{app:ladder} --- matching by price and
-requiring observability in both snapshots --- are exactly what stands between
-this and a number several times too large.
+Agreement on the submission-share levels is not something a broken
+implementation produces by accident: the two rules in
+Section~\ref{app:ladder} --- matching by price and requiring observability in
+both snapshots --- are exactly what stands between this and a number several
+times too large. The cancellation-ratio overshoot is the honest residual of
+the exercise. It has two live explanations --- cancellation traffic genuinely
+rose between the paper's sample and this one, or the netting inside
+ten-level intervals biases the ratio upward here --- and nothing in this
+study distinguishes them, so the ratio is not claimed as validated.

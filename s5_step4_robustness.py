@@ -103,20 +103,58 @@ def main() -> int:
             srows.append([f"Q{q}", b, se, f"{r.get('n',0):,}"])
             results[f"size_q{q}"] = {k: r.get(k) for k in ("coef", "se", "t", "n")}
 
-        # ---- half-year stability
-        print("\n--- first half versus second half of 2024 ---")
+        # ---- sub-period stability, halves derived from the sample itself.
+        # Never a hardcoded calendar date: the one time this was hardcoded the
+        # study window later moved, H1 silently became empty, H2 became the
+        # whole sample, and the table reported a check that no longer checked
+        # anything. sample_halves() asserts a genuine partition.
+        print("\n--- sub-period stability (split at the median trading date) ---")
         hrows = []
-        for lab, mask in (("H1", pl.col("date").cast(pl.Utf8) < "2024-07-01"),
-                          ("H2", pl.col("date").cast(pl.Utf8) >= "2024-07-01")):
-            sub = df.filter(mask)
+        for lab, sub in S5.sample_halves(df):
             r = S5.fit(sub, Y, [f"{S5.PRIMARY_X}_l1", f"{Y}_l1"] + controls)
             b, se = S5.cell(r, f"{S5.PRIMARY_X}_l1")
             print(f"  {lab}: {b:<14} {se:<12} n={r.get('n',0):,}")
             hrows.append([lab, b, se, f"{r.get('n',0):,}"])
-            results[f"half_{lab}"] = {k: r.get(k) for k in ("coef", "se", "t", "n")}
+            key = "half_H1" if lab.startswith("H1") else "half_H2"
+            results[key] = {k: r.get(k) for k in ("coef", "se", "t", "n")}
+            results[key]["label"] = lab
+
+        # ---- event window: the same estimate with the wildest week removed.
+        # The window is a fact about this sample (the April 2025 tariff shock)
+        # and is applied only when it intersects the panel's dates, so the
+        # code stays year-agnostic.
+        xrows = []
+        ds_all = df["date"].cast(pl.Utf8)
+        for lo, hi in [("2025-04-03", "2025-04-11")]:
+            if not ((ds_all >= lo) & (ds_all <= hi)).any():
+                continue
+            sub = df.filter(~ds_all.is_between(lo, hi))
+            r = S5.fit(sub, Y, [f"{S5.PRIMARY_X}_l1", f"{Y}_l1"] + controls)
+            b, se = S5.cell(r, f"{S5.PRIMARY_X}_l1")
+            print(f"  excluding {lo}..{hi}: {b:<14} {se:<12} n={r.get('n',0):,}")
+            xrows.append([f"Excluding {lo} to {hi}", b, se, f"{r.get('n',0):,}"])
+            results["ex_crash"] = {k: r.get(k) for k in ("coef", "se", "t", "n")}
+            results["ex_crash"]["window"] = [lo, hi]
+
+        # ---- deeper dynamics: five lags of the outcome instead of one.
+        # "Adds information beyond the outcome's own history" should not hinge
+        # on history meaning exactly one day.
+        deep = df.sort(["ticker", "date"])
+        deep_lags = []
+        for k in range(2, 6):
+            cname = f"{Y}_l{k}"
+            deep = deep.with_columns(**{cname: pl.col(Y).shift(k).over("ticker")})
+            deep_lags.append(cname)
+        r = S5.fit(deep, Y, [f"{S5.PRIMARY_X}_l1", f"{Y}_l1"] + deep_lags + controls)
+        b, se = S5.cell(r, f"{S5.PRIMARY_X}_l1")
+        t = r.get("t", {}).get(f"{S5.PRIMARY_X}_l1", float("nan"))
+        print(f"\n  five lags of the outcome: {b:<14} {se:<12} t={t:>6.2f}  "
+              f"n={r.get('n',0):,}")
+        xrows.append(["Five lags of the outcome", b, se, f"{r.get('n',0):,}"])
+        results["deep_lags"] = {k2: r.get(k2) for k2 in ("coef", "se", "t", "n")}
 
         # ---- Fama-MacBeth as an estimator cross-check
-        print("\n--- Fama-MacBeth cross-check (240 daily cross-sections) ---")
+        print("\n--- Fama-MacBeth cross-check (per-day cross-sections) ---")
         fm = df.select(["date", Y, f"{S5.PRIMARY_X}_l1", f"{Y}_l1"]).drop_nulls()
         betas = []
         for (d,), g in fm.group_by(["date"], maintain_order=True):
@@ -147,7 +185,8 @@ def main() -> int:
 
         rrows = ([["Baseline (dynamic)", bb, bse, f"{base.get('n',0):,}"]]
                  + [["Size " + r[0], r[1], r[2], r[3]] for r in srows]
-                 + [["Period " + r[0], r[1], r[2], r[3]] for r in hrows])
+                 + [["Period " + r[0], r[1], r[2], r[3]] for r in hrows]
+                 + xrows)
         if "fine_tick_only" in results:
             r = results["fine_tick_only"]
             k = f"{S5.PRIMARY_X}_l1"
@@ -162,8 +201,14 @@ def main() -> int:
             ["Specification", "Coefficient", "SE", "Stock-days"], rrows,
             notes="Each row re-estimates the dynamic specification of "
                   "Table~\\ref{tab:rq2} with the log effective spread as the "
-                  "outcome, on the stated subsample. Size quintiles are formed "
-                  "once per stock on median market capitalisation. "
+                  "outcome, on the stated subsample or with the stated change. "
+                  "Size quintiles are formed once per stock on median market "
+                  "capitalisation. The period rows split the panel at its "
+                  "median trading date, derived from the sample rather than "
+                  "from a calendar. The event-window row removes the named "
+                  "week. The five-lag row replaces the single lag of the "
+                  "outcome with five, so the coefficient reads against a "
+                  "richer version of the outcome's own history. "
                   "$^{*}p<0.1$, $^{**}p<0.05$, $^{***}p<0.01$.")
 
         # ---- placebo figure

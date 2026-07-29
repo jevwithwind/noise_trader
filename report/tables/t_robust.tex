@@ -8,19 +8,21 @@
 \toprule
 Specification & Coefficient & SE & Stock-days \\
 \midrule
-Baseline (dynamic) & 0.0192*** & (0.0075) & 74,034 \\
-Size Q1 & 0.0143 & (0.0156) & 15,062 \\
-Size Q2 & 0.0325** & (0.0127) & 14,999 \\
-Size Q3 & 0.0216 & (0.0145) & 15,099 \\
-Size Q4 & -0.0100 & (0.0175) & 14,743 \\
-Size Q5 & 0.0221 & (0.0243) & 14,054 \\
-Period H1 & -- &  & 0 \\
-Period H2 & 0.0192*** & (0.0075) & 74,034 \\
-0.1-yen-tick days only & -0.0055 & (0.0625) & 2,057 \\
+Baseline (dynamic) & 0.0188** & (0.0075) & 74,034 \\
+Size Q1 & 0.0140 & (0.0156) & 15,062 \\
+Size Q2 & 0.0313** & (0.0127) & 14,999 \\
+Size Q3 & 0.0217 & (0.0146) & 15,099 \\
+Size Q4 & -0.0119 & (0.0174) & 14,743 \\
+Size Q5 & 0.0207 & (0.0241) & 14,054 \\
+Period H1 (2025-01 to 2025-03) & 0.0164* & (0.0096) & 36,842 \\
+Period H2 (2025-03 to 2025-04) & 0.0037 & (0.0103) & 37,192 \\
+Excluding 2025-04-03 to 2025-04-11 & 0.0189** & (0.0079) & 67,970 \\
+Five lags of the outcome & 0.0124* & (0.0073) & 70,014 \\
+0.1-yen-tick days only & -0.0033 & (0.0613) & 2,057 \\
 \bottomrule
 \end{tabular}
 \begin{tablenotes}[flushleft]\footnotesize
-\item Each row re-estimates the dynamic specification of Table~\ref{tab:rq2} with the log effective spread as the outcome, on the stated subsample. Size quintiles are formed once per stock on median market capitalisation. $^{*}p<0.1$, $^{**}p<0.05$, $^{***}p<0.01$.
+\item Each row re-estimates the dynamic specification of Table~\ref{tab:rq2} with the log effective spread as the outcome, on the stated subsample or with the stated change. Size quintiles are formed once per stock on median market capitalisation. The period rows split the panel at its median trading date, derived from the sample rather than from a calendar. The event-window row removes the named week. The five-lag row replaces the single lag of the outcome with five, so the coefficient reads against a richer version of the outcome's own history. $^{*}p<0.1$, $^{**}p<0.05$, $^{***}p<0.01$.
 \end{tablenotes}
 \end{threeparttable}
 \end{table}

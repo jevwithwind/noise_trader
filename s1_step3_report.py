@@ -150,7 +150,7 @@ def main() -> int:
         "within 0.005 percentage points, its liquidity measures satisfy the "
         "identities they should satisfy and order themselves correctly across the "
         "liquidity spectrum, and its order-flow inference independently lands on "
-        "the paper's published magnitudes. 53 unit tests pass, including a "
+        "the paper's published magnitudes. The unit-test suite passes, including a "
         "hand-built order-book tape that checks the ladder algorithm against the "
         "three ways this inference is known to fail: mistaking an execution for a "
         "cancellation, inventing flow when the book shifts a level, and counting "

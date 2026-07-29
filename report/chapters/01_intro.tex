@@ -1,7 +1,19 @@
 % =====================================================================
-\section{Introduction}
+\section{What this briefing is, and how to read it}
 \label{sec:intro}
 % =====================================================================
+
+\subsection{Purpose}
+
+This document is a technical briefing, not a journal article. It has one
+reader --- the author, preparing to present, defend and extend this work
+during an internship whose task is a rebalancing strategy built on the
+indicator studied here --- and it is organised so that any result can be
+explained from it directly: what was computed, from which formula, taken from
+which reference, validated how, and trusted how far. Everything numerical in
+the chapters that follow is regenerated from the pipeline's stored outputs
+whenever the analysis is re-run, and every interpretive sentence is generated
+from the estimates it describes, so the prose cannot drift from the tables.
 
 \subsection{The sentence this study is built on}
 
@@ -29,14 +41,10 @@ formation and liquidity at a daily or shorter frequency. Such analysis, however,
 remains a task for future work.
 \end{quote}
 
-This study is that analysis. It computes the clustering measures for the Tokyo
-Stock Exchange over January--April 2025 --- three years past the end of the
-paper's sample --- and asks what they say about liquidity and price formation, daily and
-within the day.
+This study is that analysis, on a stretch of tape three years past the end of
+the paper's sample.
 
-\subsection{Why the question is not rhetorical}
-
-It would be easy to assume the answer. It is not obvious even in sign.
+\subsection{Why the answer is not obvious in advance}
 
 In \textcite{Kyle1985} noise traders are what makes a market liquid: they are the
 volume informed traders hide inside, and without them the spread widens to
@@ -51,8 +59,9 @@ impact of a large order is unusually high. On that reading, high clustering
 should mark a market that is \emph{more} expensive to trade.
 
 Both stories are about the same participants. They differ on whether what matters
-is that the uninformed are present or that they are slow. Section~\ref{sec:liquidity}
-reports which way the sample falls, and treats either answer as a result.
+is that the uninformed are present or that they are slow. Either answer would be
+a result, and the sections below report which way this sample falls --- with the
+robustness work deciding how hard the answer may be leaned on.
 
 \subsection{What this study can and cannot do}
 
@@ -71,42 +80,35 @@ round-price orders only after someone has taken them. The same data support
 inferring limit-order submission and cancellation volume from how the displayed
 ladder changes, which is how Ohta builds his own order-flow variables.
 
-The limits are equally plain, and are stated here rather than in a footnote. Four
-months is not a long panel. There is no experiment and no instrument, so
-nothing below is causal; the results are descriptive associations and predictive
-relationships, and are labelled as such throughout. The ten visible levels are a
-narrow window onto a book where most resting volume sits further out.
+The limits are equally plain. Four months is not a long panel. There is no
+experiment and no instrument, so nothing below is causal; the results are
+descriptive associations and predictive relationships, and are labelled as such
+throughout. The ten visible levels are a narrow window onto a book where most
+resting volume sits further out.
 
-\subsection{Contributions}
+\subsection{The findings at a glance}
 
-\begin{enumerate}[nosep]
-\item \textbf{The first out-of-sample year.} The clustering measures are computed
-      for 2025 under Ohta's own sample filters and compared against his published
-      1997--2022 magnitudes. This is a test of the measurement, and it is run
-      before anything is built on top of it: Section~\ref{sec:stylized} either
-      reproduces the literature or the pipeline is wrong.
-\item \textbf{The relationship the paper leaves open.} Clustering is related to
-      the liquidity measures the paper itself defines --- effective spread, price
-      impact, realized spread, quoted depth --- at daily frequency and in
-      thirty-minute buckets within the day.
-\item \textbf{Two measures the paper's data could not support.} The round-price
-      share of visible ten-level resting depth, and limit-order submission and
-      cancellation shares inferred from ladder deltas, standing in for the
-      individual-activity proxies that are unavailable here.
-\item \textbf{An honest strategy demonstration.} A size-neutralised signal, sorted
-      into quintiles, rebalanced, and charged realistic costs. Its value is the
-      cost accounting, not the return.
-\end{enumerate}
+Table~\ref{tab:findings} states every finding with the verdict the robustness
+work assigns it. When presenting this study, that table is the honest summary;
+each row's section gives the design and the caveats in full.
 
-\subsection{Roadmap}
+\input{tables/t_findings}
 
-Section~\ref{sec:lit} places the study in the literature.
-Section~\ref{sec:data} describes the feed, the institutional detail that governs
-the measures, and how the sample is built. Section~\ref{sec:measures} defines
-every measure and reports the validation the pipeline had to pass.
-Section~\ref{sec:stylized} is the replication.
-Section~\ref{sec:liquidity} is the daily clustering--liquidity relationship,
-Section~\ref{sec:book} the order-book anatomy and the within-day results, and
-Section~\ref{sec:robust} the robustness work, including a placebo that could have
-falsified the whole thing. Section~\ref{sec:strategy} is the strategy
-demonstration and Section~\ref{sec:discussion} concludes.
+\subsection{Map of the document}
+
+Section~\ref{sec:lit} says where each ingredient of the study comes from ---
+every borrowed idea with its source. Section~\ref{sec:data} describes the feed,
+the institutional details that govern the measures, and how the sample is
+built, including when its filters bite. Section~\ref{sec:measures} is the
+mathematical foundation: every measure's definition, the reference it
+originates from, and the validation the implementation had to pass.
+Section~\ref{sec:stylized} is the replication against the paper's published
+magnitudes. Section~\ref{sec:liquidity} is the daily clustering--liquidity
+relationship, Section~\ref{sec:book} the order-book anatomy and the within-day
+results, and Section~\ref{sec:robust} the robustness work, including the
+placebo, the sub-period splits, and an estimator cross-check that disagrees
+informatively. Section~\ref{sec:strategy} prices a naive strategy on the
+signal, in two variants. Section~\ref{sec:discussion} maps everything onto the
+internship brief. The appendices carry the full variable definitions, the
+ladder-inference algorithm with its hand-built test, and the reproduction
+guide.

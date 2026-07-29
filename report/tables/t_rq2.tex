@@ -8,17 +8,17 @@
 \toprule
 Outcome & Predictive & SE & Dynamic & SE & Stock-days \\
 \midrule
-Effective spread (log) & 0.0371*** & (0.0079) & 0.0192*** & (0.0075) & 74,034 \\
-Price impact, 60s (bp) & 0.1600 & (0.1469) & 0.0432 & (0.1491) & 74,034 \\
-Realized spread, 60s (bp)$^{\dagger}$ & -0.0021 & (0.1698) & 0.0796 & (0.1683) & 74,034 \\
-Depth at best quote (log)$^{\dagger}$ & -0.0613*** & (0.0092) & -0.0440*** & (0.0084) & 74,034 \\
-Realised variance (log)$^{\dagger}$ & -0.0040 & (0.0190) & -0.0077 & (0.0177) & 74,030 \\
-Variance-ratio deviation$^{\dagger}$ & 0.0109** & (0.0050) & 0.0109** & (0.0050) & 74,032 \\
-Amihud illiquidity (log)$^{\dagger}$ & 0.0361 & (0.0302) & 0.0294 & (0.0318) & 69,491 \\
+Effective spread (log) & 0.0367*** & (0.0080) & 0.0188** & (0.0075) & 74,034 \\
+Price impact, 60s (bp) & 0.1587 & (0.1476) & 0.0417 & (0.1498) & 74,034 \\
+Realized spread, 60s (bp)$^{\dagger}$ & -0.0039 & (0.1705) & 0.0776 & (0.1691) & 74,034 \\
+Depth at best quote (log)$^{\dagger}$ & -0.0616*** & (0.0092) & -0.0441*** & (0.0085) & 74,034 \\
+Realised variance (log)$^{\dagger}$ & -0.0114 & (0.0187) & -0.0065 & (0.0177) & 74,030 \\
+Variance-ratio deviation$^{\dagger}$ & 0.0106** & (0.0050) & 0.0106** & (0.0050) & 74,032 \\
+Amihud illiquidity (log)$^{\dagger}$ & 0.0372 & (0.0301) & 0.0305 & (0.0317) & 69,491 \\
 \bottomrule
 \end{tabular}
 \begin{tablenotes}[flushleft]\footnotesize
-\item Each cell is the coefficient on $M^{BLarge0}_{t-1}$, the round-price share of buy-initiated large-trade volume. All specifications carry stock and day fixed effects and the full control set (relative tick size, lagged log turnover, lagged log realised variance, lagged log effective spread, the overnight return, and the opening-digit by low-volatility interactions). The dynamic column adds the outcome's own lag, so its coefficient is the incremental predictive content of clustering given what yesterday's liquidity already said. Standard errors are clustered by stock and by day. Days on the 0.1-yen grid are excluded, following Ohta (2026). $^{\dagger}$ secondary outcome, not pre-specified. $^{*}p<0.1$, $^{**}p<0.05$, $^{***}p<0.01$. These are predictive associations in a single year, not causal estimates.
+\item Each cell is the coefficient on $M^{BLarge0}_{t-1}$, the round-price share of buy-initiated large-trade volume. All specifications carry stock and day fixed effects and the full control set (relative tick size, lagged log turnover, lagged log realised variance, lagged log effective spread, the overnight return, and the opening-digit by low-volatility interactions, timed to match the regressor: lagged interactions beside $M_{t-1}$, same-day ones beside $M_t$). The dynamic column adds the outcome's own lag, so its coefficient is the incremental predictive content of clustering given the outcome's own one-day lag; Section~\ref{sec:robust} probes deeper lags. Standard errors are clustered by stock and by day. Days on the 0.1-yen grid are excluded, following Ohta (2026). $^{\dagger}$ secondary outcome, not pre-specified. $^{*}p<0.1$, $^{**}p<0.05$, $^{***}p<0.01$. These are predictive associations in a single quarter, not causal estimates.
 \end{tablenotes}
 \end{threeparttable}
 \end{table}
