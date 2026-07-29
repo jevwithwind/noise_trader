@@ -53,6 +53,12 @@ def main() -> int:
     ap.add_argument("--ladder-tickers", default="",
                     help="path to a one-per-line ticker list to run ladder inference on")
     ap.add_argument("--max-dates", type=int, default=0)
+    ap.add_argument("--fresh", action="store_true",
+                    help="discard the checkpoint and any per-date outputs first. "
+                         "Needed whenever the store has gained tickers since the "
+                         "last build: the checkpoint records that a date was "
+                         "processed, not how much of it existed at the time, so a "
+                         "resumed run would silently keep the thinner version.")
     ap.add_argument("--gate-after", type=int, default=5,
                     help="project total runtime after this many dates")
     ap.add_argument("--gate-hours", type=float, default=24.0)
@@ -84,6 +90,19 @@ def main() -> int:
         units = S3.load_units()
         print(f"trading units loaded for {len(units):,} stock-days"
               + (f"; distinct values {sorted(set(units.values()))[:5]}" if units else ""))
+
+        if args.fresh:
+            n_rm = 0
+            for sub in ("daily", "intraday"):
+                d = os.path.join(OUT, sub)
+                if os.path.isdir(d):
+                    for f in os.listdir(d):
+                        if f.endswith(".parquet"):
+                            os.remove(C.write_guard(os.path.join(d, f)))
+                            n_rm += 1
+            if os.path.exists(CKPT):
+                os.remove(C.write_guard(CKPT))
+            print(f"--fresh: cleared checkpoint and {n_rm} per-date output(s)\n")
 
         ck = C.read_json(CKPT, {"done": [], "errors": []})
         done = set(ck.get("done", []))

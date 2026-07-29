@@ -43,15 +43,25 @@ def main() -> int:
     ap.add_argument("--build-panel", default="",
                     help="date range YYYYMMDD-YYYYMMDD to build first")
     ap.add_argument("--workers", type=int, default=6)
+    ap.add_argument("--resume-panel", action="store_true",
+                    help="keep any existing per-date panel outputs instead of "
+                         "rebuilding them")
     args = ap.parse_args()
 
     t0 = time.perf_counter()
     if args.build_panel:
         a, b = args.build_panel.split("-")
         print(f"### building panel {a}..{b}\n", flush=True)
-        r = subprocess.run([PY, "s3_step1_build.py", "--start", a, "--end", b,
-                            "--workers", str(args.workers), "--gate-after", "999"],
-                           cwd=C.PROJ)
+        cmd = [PY, "s3_step1_build.py", "--start", a, "--end", b,
+               "--workers", str(args.workers), "--gate-after", "999"]
+        lad = os.path.join(C.RESULTS, "s3_panel", "ladder_tickers.txt")
+        if os.path.exists(lad):
+            cmd += ["--ladder-tickers", lad]
+        # Rebuild from scratch by default: the store gains tickers between runs,
+        # and a resumed build would keep whatever thinner version it wrote first.
+        if not args.resume_panel:
+            cmd.append("--fresh")
+        r = subprocess.run(cmd, cwd=C.PROJ)
         if r.returncode != 0:
             print(f"panel build failed with {r.returncode}")
             return r.returncode
