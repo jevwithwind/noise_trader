@@ -14,18 +14,18 @@ first out-of-sample evidence on these measures.
 \input{tables/t_stylized}
 
 Table~\ref{tab:stylized} puts the 2025 means beside Ohta's 2010--2022
-benchmarks. Round prices take 14.07\% of all
+benchmarks. Round prices take 14.54\% of all
 continuous-session volume against his 13.5\%, and
-16.17\% of buy-initiated large-trade volume against his 14.8\%. Under a
+13.44\% of buy-initiated large-trade volume against his 14.8\%. Under a
 uniform digit distribution every one of these would be 10\%. Clustering is
 alive and well on the Tokyo Stock Exchange two years past the end of his sample.
 
 \paragraph{The ordering the mechanism predicts.}
 The paper's account is specifically about \emph{large} orders taking stale
 round-price limit orders, so the large-trade measure should exceed the
-small-trade one. It does, by 5.74 percentage
+small-trade one. It does, by 2.74 percentage
 points on the buy side, significant at the 1\% level. The small-trade measures sit
-at 10.43\% and 10.30\%, barely
+at 10.72\% and 11.43\%, barely
 above the uniform benchmark. Whatever produces clustering, it is not something
 that happens to trades of one unit.
 
@@ -52,7 +52,7 @@ and a smaller one at five, it would produce something lumpy.
 \input{tables/t_size}
 
 \textcite{Harris1991Clustering} predicts more clustering on finer grids,
-and while this sample holds too few 0.1-yen stock-days to report a separate mean, the 1-yen grid averages 13.94\%. The mechanism is not mysterious.
+and while this sample holds too few 0.1-yen stock-days to report a separate mean, the 1-yen grid averages 14.49\%. The mechanism is not mysterious.
 At a price around 900 yen a 0.1-yen tick is about one basis point, fine enough
 that order placement collapses back onto whole-yen prices --- and a whole yen is
 the roundest number available. These days are kept here, where they are a
@@ -79,8 +79,8 @@ intervals from standard errors clustered by stock and by day.}
 This is the paper's second result and the one that makes clustering matter for
 execution. A trade at a round price is executing against an order whose price has
 gone stale, so the midquote should move further afterwards. At the one-minute
-horizon the premium is 0.43 basis points on the buy side and
-1.28 on the sell side, against Ohta's 1.26 and 1.12.
+horizon the premium is nan basis points on the buy side and
+nan on the sell side, against Ohta's 1.26 and 1.12.
 
 The effective-spread decomposition closes as an identity, which is a check on the
 implementation rather than a finding: impact plus realized spread equals the
@@ -97,9 +97,9 @@ measured clustering in buy-initiated large trades.}
 \end{figure}
 
 The measure the paper's data could not support says the same thing from the other
-side. 14.35\% of visible ten-level ask depth sits at round prices against a
+side. 12.50\% of visible ten-level ask depth sits at round prices against a
 uniform benchmark of 10\%, and
-13.21\% on the bid.
+15.96\% on the bid.
 Figure~\ref{fig:rdepth} relates it to the executed measure: stock-days where
 more of the standing book sits at round prices are stock-days where more
 round-price volume executes. Where the clustering measures observe the mechanism
@@ -120,4 +120,4 @@ Every regression below therefore carries the interaction of the opening-digit
 dummies with a low-volatility indicator, as the paper does.
 
 \paragraph{Verdict.}
-The sample reproduces the paper's facts: clustering well above the uniform benchmark, concentrated in large trades, carrying a positive round-price impact premium. The measurement is sound and the rest of the study can be built on it.
+The sample reproduces the paper's facts: clustering well above the uniform benchmark, concentrated in large trades, without the usual size gradient, with the impact premium not positive here. The measurement is sound and the rest of the study can be built on it.

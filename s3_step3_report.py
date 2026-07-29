@@ -65,7 +65,9 @@ def main() -> int:
             "",
         ]
         if "tick_source" in df.columns:
-            src = {r["tick_source"]: r["len"] for r in
+            # A stock-day with no resolvable tick carries a null source, which
+            # cannot be sorted against the string keys.
+            src = {(r["tick_source"] or "unresolved"): r["len"] for r in
                    df.group_by("tick_source").len().iter_rows(named=True)}
             lines += [
                 "## Tick-size resolution",

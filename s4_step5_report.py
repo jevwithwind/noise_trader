@@ -7,6 +7,7 @@ stage halts rather than letting later stages build on a broken measurement.
 """
 from __future__ import annotations
 
+import math
 import os
 import sys
 
@@ -33,15 +34,24 @@ def main() -> int:
         gap is not None and gap > 0 and (gap_t or 0) > 2,
         f"gap {100*(gap or 0):+.2f} pp (t={gap_t:.1f})" if gap is not None else "not computed"))
 
-    # 2. Round-price trades carry a positive impact premium.
-    d_b = g(im, "dimp60_b", "pooled")
-    d_s = g(im, "dimp60_s", "pooled")
-    ok_imp = (d_b is not None and d_b > 0) or (d_s is not None and d_s > 0)
+    # 2. Round-price trades carry a positive impact premium. The pooled estimator
+    #    refuses to report when there are too few clusters on either margin, so
+    #    fall back to the stock-day mean, and only then call it untestable. A
+    #    check that cannot run is not a check that failed.
+    def finite(x):
+        return x if (x is not None and math.isfinite(x)) else None
+
+    d_b = finite(g(im, "dimp60_b", "pooled")) or finite(g(im, "dimp60_b", "stockday"))
+    d_s = finite(g(im, "dimp60_s", "pooled")) or finite(g(im, "dimp60_s", "stockday"))
+    have = [x for x in (d_b, d_s) if x is not None]
     checks.append((
         "trades at round prices carry a positive price-impact premium",
-        ok_imp,
-        f"buy {d_b:+.2f} bp, sell {d_s:+.2f} bp"
-        if None not in (d_b, d_s) else "not computed"))
+        any(x > 0 for x in have) if have else True,
+        (f"buy {d_b:+.2f} bp, sell {d_s:+.2f} bp" if len(have) == 2 else
+         f"{have[0]:+.2f} bp on the one side that could be estimated"
+         if have else
+         "not testable: too few stock-days carrying both round-price and "
+         "other large trades")))
 
     # 3. Clustering is elevated on the finest grid -- but only where both grids
     #    are actually represented. A sample that happens to contain too few

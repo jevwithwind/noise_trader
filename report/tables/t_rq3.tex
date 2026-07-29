@@ -1,11 +1,21 @@
 \begin{table}[htbp]
 \centering
-\caption{Not estimated on this sample}
+\caption{Order-book anatomy of price clustering}
 \label{tab:rq3}
 \small
-\begin{tabular}{@{}l@{}}
+\begin{threeparttable}
+\begin{tabular}{@{}lrrr@{}}
 \toprule
-This specification could not be estimated on the sample available. \\
+Dependent variable & RDepth & SE & Stock-days \\
+\midrule
+$M^{BLarge0}$ & -- &  & 1,672 \\
+$\Delta\mathit{Imp}^{BLarge}$ & -- &  & 913 \\
+$M^{SLarge0}$ & -- &  & 1,675 \\
+$\Delta\mathit{Imp}^{SLarge}$ & -- &  & 1,084 \\
 \bottomrule
 \end{tabular}
+\begin{tablenotes}[flushleft]\footnotesize
+\item Analogues of Ohta's (2026) equations (1) and (2), with book-derived variables replacing the margin-trading and ownership proxies, which are not available here. $L^{0}$ is the round-price share of limit-order volume submitted within the visible book, $L^{0C}$ the ratio of cancelled to submitted volume at round prices, and RDepth the round-price share of visible ten-level resting depth. Sell-side book variables are paired with buy-initiated outcomes, since a buy market order executes against sell limit orders. All regressors are lagged one day. Stock and day fixed effects, standard errors clustered by stock and by day. The hypothesis predicts a positive coefficient on $L^{0}$ and RDepth and a negative one on $L^{0C}$. $^{*}p<0.1$, $^{**}p<0.05$, $^{***}p<0.01$.
+\end{tablenotes}
+\end{threeparttable}
 \end{table}
