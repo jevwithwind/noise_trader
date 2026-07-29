@@ -6,7 +6,7 @@ is a tradable rule" is exactly where such projects fail. So the machinery is
 built and exercised end to end: form a tradable signal from information available
 at the time, sort on it, rebalance, and charge realistic costs.
 
-It is a demonstration of plumbing, not an alpha claim. One year, one market, no
+It is a demonstration of plumbing, not an alpha claim. One short sample, one market, no
 out-of-sample period, and returns computed from raw closing prices that carry no
 adjustment for splits or dividends. The honest output is the cost accounting and
 the turnover, not the Sharpe ratio.
@@ -223,7 +223,7 @@ def main() -> int:
                   "Stock-days with an absolute move above 25\\% are dropped, since "
                   "closing prices here carry no adjustment for splits or "
                   "dividends. This is a demonstration that the pipeline runs end "
-                  "to end, not evidence of a profitable strategy: one year, one "
+                  "to end, not evidence of a profitable strategy: one short sample, one "
                   "market, and no out-of-sample period.")
         return 0
     finally:

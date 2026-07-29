@@ -67,7 +67,7 @@ def main() -> int:
         "intraday fixed effects, the manual Cameron-Gelbach-Miller implementation as "
         "arbiter.",
         "",
-        "## Trading calendar 2024",
+        f"## Trading calendar {C.YEAR}",
         "",
         f"- {cal.get('total_gb')} GB compressed across "
         f"{int(caldf['n_shards'].sum())} shards.",

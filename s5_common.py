@@ -15,10 +15,11 @@ lag. Clustering is highly persistent and so is liquidity, so a regression withou
 it mostly recovers the fact that liquid stocks are liquid. With it, the
 coefficient answers a sharper question: does today's clustering tell us anything
 about tomorrow's liquidity that yesterday's liquidity did not already say? With
-240 time periods the resulting dynamic-panel bias is of order 1/T and negligible.
+the number of trading days in this sample the resulting dynamic-panel bias is of
+order 1/T and negligible.
 
-*Nothing here is causal.* One year, no experiment, no instrument. Every statement
-in the report is descriptive or predictive.
+*Nothing here is causal.* One short sample, no experiment, no instrument. Every
+statement in the report is descriptive or predictive.
 """
 from __future__ import annotations
 
