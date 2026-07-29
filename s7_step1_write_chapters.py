@@ -160,6 +160,26 @@ return.
             "trading days in the year, of which this study uses the months listed "
             "below.")
 
+    spans_ext = False
+    if final is not None and final.height:
+        _d = final["date"].cast(pl.Utf8)
+        spans_ext = _d.min() <= "2024-11-05" <= _d.max()
+    if spans_ext:
+        session_para = (
+            "The afternoon session closed at 15:00 until 2024-11-05 and at 15:30 "
+            "afterwards, and this panel spans that change. Every time-dependent "
+            "quantity is parameterised by date; a hardcoded close would truncate "
+            "part of the afternoon and corrupt the price-impact horizons on "
+            "exactly the affected days.")
+    else:
+        session_para = (
+            "The afternoon session closed at 15:00 until 2024-11-05 and at 15:30 "
+            "afterwards. This panel sits entirely after that change, so the close "
+            "is 15:30 throughout --- but the close is still resolved from the date "
+            "rather than assumed, because the same code is meant to run on earlier "
+            "years, and the price-impact horizons depend on knowing when the "
+            "session actually ends.")
+
     comp_rows = ""
     if panel is not None and "tick10" in panel.columns:
         sc = panel.filter(pl.col("skip_reason").is_null())
@@ -190,11 +210,8 @@ and the variables used to screen the universe.
 
 \\subsection{{Two institutional details that shape everything}}
 
-\\paragraph{{The session changed length part-way through the year.}}
-The afternoon session closed at 15:00 until 2024-11-05 and at 15:30 afterwards.
-Every time-dependent quantity here is parameterised by date. A hardcoded close
-would silently truncate two months of the afternoon, and would corrupt the
-price-impact horizons on exactly those days.
+\\paragraph{{The trading session is not a fixed object.}}
+{session_para}
 
 \\paragraph{{The exchange runs two tick grids at once.}}
 Constituents of the TOPIX 500 trade on a finer grid than everything else --- a
