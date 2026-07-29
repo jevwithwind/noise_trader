@@ -43,6 +43,11 @@ def main() -> int:
     ap.add_argument("--build-panel", default="",
                     help="date range YYYYMMDD-YYYYMMDD to build first")
     ap.add_argument("--workers", type=int, default=6)
+    ap.add_argument("--gate-after", type=int, default=4,
+                    help="project the panel build's total runtime after this many "
+                         "dates, so a bad estimate surfaces in minutes rather "
+                         "than hours")
+    ap.add_argument("--gate-hours", type=float, default=5.0)
     ap.add_argument("--resume-panel", action="store_true",
                     help="keep any existing per-date panel outputs instead of "
                          "rebuilding them")
@@ -53,7 +58,9 @@ def main() -> int:
         a, b = args.build_panel.split("-")
         print(f"### building panel {a}..{b}\n", flush=True)
         cmd = [PY, "s3_step1_build.py", "--start", a, "--end", b,
-               "--workers", str(args.workers), "--gate-after", "999"]
+               "--workers", str(args.workers),
+               "--gate-after", str(args.gate_after),
+               "--gate-hours", str(args.gate_hours)]
         lad = os.path.join(C.RESULTS, "s3_panel", "ladder_tickers.txt")
         if os.path.exists(lad):
             cmd += ["--ladder-tickers", lad]

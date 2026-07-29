@@ -52,12 +52,14 @@ def main() -> int:
             n_uni = u.height
             print(f"universe: {n_uni:,} stocks")
 
-            # The ladder inference costs several times the base measures, because
-            # it expands every book snapshot into twenty price-level rows before
-            # differencing them. It runs on a size-stratified subsample so the
-            # cost is bounded and the coverage is still representative; the
-            # decision is written down rather than left implicit.
-            n_per = 60
+            # Measured on this store: the ten-level book measures cost only about
+            # 1.2x the base measures, so RDepth runs on every stock-day. The
+            # ladder inference costs a further 3.3x, because it expands each book
+            # snapshot into twenty price-level rows before differencing them, so
+            # it runs on a size-stratified subsample instead. Thirty stocks per
+            # quintile over the sample still gives roughly ten thousand
+            # stock-days, which is ample for a panel with stock and day effects.
+            n_per = 30
             u = u.drop_nulls("mktcap").sort("mktcap")
             if u.height:
                 u = u.with_columns(
