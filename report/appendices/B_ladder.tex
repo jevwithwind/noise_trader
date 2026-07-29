@@ -125,9 +125,13 @@ rather than being bridged across.
 
 \subsection{Does it recover the published magnitudes?}
 
-The strongest available check is external. Ohta reports mean $L^{S0}$ of 0.106
-and mean $L^{S0C}$ of 0.806 across 2010--2022. Run on stock-days from 2024, this
-implementation returns $L^{S0}$ between 0.103 and 0.155 and $L^{S0C}$ between
-0.58 and 0.83. Nothing in the algorithm was calibrated against those numbers, and
-they come from a different sample period, so the agreement is evidence that the
-inference is recovering the same quantity the paper measures.
+The strongest available check is external, and it is the one this appendix rests
+on. Ohta reports a mean $L^{S0}$ of 0.106 and a mean $L^{S0C}$ of 0.806 across
+2010--2022, computed from the same kind of feed by an independent implementation.
+
+\input{chapters/_ladder_validation}
+
+Agreement at this level is not something a broken implementation produces by
+accident. The two rules in Section~\ref{app:ladder} --- matching by price and
+requiring observability in both snapshots --- are exactly what stands between
+this and a number several times too large.

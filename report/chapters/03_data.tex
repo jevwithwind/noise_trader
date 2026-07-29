@@ -54,11 +54,11 @@ over:
 \toprule
 Tick size & Stock-days & Status \\
 \midrule
-1 yen & 686 & kept \\
-5 yen & 33 & excluded by filter (d) \\
-10 yen & 28 & kept \\
-0.1 yen & 26 & kept \\
-0.5 yen & 24 & excluded by filter (d) \\
+1 yen & 875 & kept \\
+5 yen & 39 & excluded by filter (d) \\
+10 yen & 37 & kept \\
+0.1 yen & 36 & kept \\
+0.5 yen & 34 & excluded by filter (d) \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -82,9 +82,9 @@ digits without moving several percent. The twenty-trade minimum removes days
 where the measure is a ratio of small integers.
 
 Applying the same tests properly at tick level gives the final panel:
-800 stock-days attempted, 692
-passing all four filters, and 668 surviving the requirement that a stock
-qualify on more than half the sample --- 334 stocks over 2
+1,024 stock-days attempted, 880
+passing all four filters, and 850 surviving the requirement that a stock
+qualify on more than half the sample --- 425 stocks over 2
 trading days. The full waterfall is reported in the stage output; no stock-day
 disappears without being counted.
 

@@ -758,6 +758,29 @@ costs exceed the signal --- which is itself the most useful thing this prototype
 has to say about how such an indicator should be used.
 """)
 
+    # The ladder validation is generated rather than written by hand, because it
+    # is the strongest external check in the study and must track the data.
+    lad = ""
+    if final is not None and "l_s0" in final.columns:
+        lv = final.drop_nulls("l_s0")
+        if lv.height > 50:
+            def mn(c):
+                return float(lv[c].mean()) if c in lv.columns else None
+            lad = (
+                "Run over the panel, the inference returns a mean round-price "
+                f"share of submitted sell limit orders of {num(mn('l_s0'), 4)} and "
+                f"of buy limit orders {num(mn('l_b0'), 4)}, against Ohta's "
+                "published 0.106 and 0.105. The cancellation ratios are "
+                f"{num(mn('l_s0c'), 3)} and {num(mn('l_b0c'), 3)} against his "
+                f"0.806 and 0.812. These come from {lv.height:,} stock-days and a "
+                "different sample period, and nothing in the algorithm was "
+                "calibrated against them.")
+    with open(C.write_guard(os.path.join(CH, "_ladder_validation.tex")), "w",
+              encoding="utf-8") as fh:
+        fh.write((lad or "The panel did not contain enough stock-days carrying the "
+                         "ladder measures to report a mean here.") + "\n")
+    print("wrote _ladder_validation.tex")
+
     # A table the analysis could not estimate on this sample must still resolve,
     # and must say so in the document rather than silently vanishing.
     stubs = 0
