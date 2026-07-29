@@ -792,13 +792,15 @@ in small, retail-heavy names, so an unneutralised sort is largely a small-cap be
 wearing a microstructure costume.
 
 \\paragraph{{The cost line is the finding.}}
-The long--short portfolio turns over
-{num(100*(strat.get('turnover') or 0), 1)}\\% of each leg per day. At the
-measured effective half-spread of {num(strat.get('half_spread_bp'), 2)} basis
-points, that costs {num(strat.get('cost_bp_day'), 2)} basis points a day against
-a gross return of {num(strat.get('gross_bp_day'), 2)}, leaving
-{num(strat.get('net_bp_day'), 2)}. A signal that has to be refreshed daily in
-names this wide pays its gross return away several times over.
+The long--short portfolio replaces
+{num(100*(strat.get('turnover') or 0), 1)}\% of each leg per day. Every
+replacement is two trades and there are two legs, so the daily bill is four
+times turnover times the effective half-spread of
+{num(strat.get('half_spread_bp'), 2)} basis points:
+{num(strat.get('cost_bp_day'), 2)} basis points against a gross return of
+{num(strat.get('gross_bp_day'), 2)}, leaving {num(strat.get('net_bp_day'), 2)}.
+A signal that has to be refreshed daily in names this wide pays its gross return
+away several times over.
 
 That is the useful lesson for the problem this prototype was built for. If the
 indicator is to be used at all, it has to be used either at a horizon long enough

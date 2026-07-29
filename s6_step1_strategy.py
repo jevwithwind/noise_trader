@@ -155,16 +155,22 @@ def main() -> int:
                 prev = cur
             turnover = float(np.mean(turns)) if turns else float("nan")
             hs_bp = float(sig["effsprd_bps"].mean())
-            # Both legs, both sides of the round trip.
-            cost_bp = 2 * turnover * hs_bp
+            # Cost arithmetic, spelled out because it is the point of the section.
+            # `turnover` is the fraction of one leg's names replaced per day. A
+            # replacement is two trades -- sell the leaver, buy the entrant -- and
+            # each crosses the effective half-spread, so one leg pays
+            # 2 * turnover * half-spread per day. The long-short portfolio has two
+            # legs and its return is quoted per unit of each, so the total is
+            # twice that again.
+            cost_bp = 4 * turnover * hs_bp
             net_bp = mu * 1e4 - cost_bp
 
             print(f"\nlong-short (Q5 minus Q1), rebalanced daily:")
             print(f"  gross      {mu*1e4:+7.2f} bp/day   t={mu/se:.2f}   "
                   f"annualised {ann:+.1f}%   Sharpe {sharpe:.2f}")
             print(f"  turnover   {100*turnover:.1f}% of each leg per day")
-            print(f"  cost       {cost_bp:.2f} bp/day at a {hs_bp:.2f} bp "
-                  f"effective half-spread")
+            print(f"  cost       {cost_bp:.2f} bp/day = 4 x {100*turnover:.1f}% "
+                  f"turnover x {hs_bp:.2f} bp half-spread (two legs, two sides)")
             print(f"  net        {net_bp:+7.2f} bp/day")
             print("\n  The cost line is the point of this exercise. A signal that "
                   "must be refreshed daily in names this wide pays its gross "
@@ -212,7 +218,8 @@ def main() -> int:
                   "turnover, lagged volatility, lagged spread and the overnight "
                   "return, standardised within the day. Portfolios are equally "
                   "weighted and rebalanced daily. Costs charge the measured "
-                  "effective half-spread on both legs of the observed turnover. "
+                  "effective half-spread on both sides of every replacement in "
+                  "both legs, which is four times turnover times the half-spread. "
                   "Stock-days with an absolute move above 25\\% are dropped, since "
                   "closing prices here carry no adjustment for splits or "
                   "dividends. This is a demonstration that the pipeline runs end "
