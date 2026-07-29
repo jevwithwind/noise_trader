@@ -48,6 +48,8 @@ def main() -> int:
                          "dates, so a bad estimate surfaces in minutes rather "
                          "than hours")
     ap.add_argument("--gate-hours", type=float, default=5.0)
+    ap.add_argument("--keep-artifacts", action="store_true",
+                    help="do not clear previously generated tables and figures")
     ap.add_argument("--resume-panel", action="store_true",
                     help="keep any existing per-date panel outputs instead of "
                          "rebuilding them")
@@ -72,6 +74,22 @@ def main() -> int:
         if r.returncode != 0:
             print(f"panel build failed with {r.returncode}")
             return r.returncode
+
+    # Clear generated tables and figures before the analysis runs. Otherwise a
+    # stage that fails leaves its previous output in place and the report shows
+    # numbers from an earlier run, with nothing to indicate it. Anything not
+    # regenerated becomes a labelled placeholder instead, which is visible.
+    if not args.from_stage and not args.keep_artifacts:
+        n = 0
+        for d, ext in ((os.path.join(C.REPORT, "tables"), ".tex"),
+                       (os.path.join(C.REPORT, "figures"), ".pdf")):
+            if os.path.isdir(d):
+                for f in os.listdir(d):
+                    if f.endswith(ext):
+                        os.remove(C.write_guard(os.path.join(d, f)))
+                        n += 1
+        print(f"### cleared {n} generated table(s)/figure(s) from the report\n",
+              flush=True)
 
     started = not args.from_stage
     for script, extra, critical in STAGES:
