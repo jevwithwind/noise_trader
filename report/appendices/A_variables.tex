@@ -1,0 +1,115 @@
+% =====================================================================
+\section{Variable definitions}
+\label{app:variables}
+% =====================================================================
+
+Notation follows Ohta (2026) where the quantity is his. A superscript $k \in
+\{B, S\}$ denotes trades initiated by a buy or a sell market order; \emph{large}
+means a trade of more than one trading unit and \emph{small} exactly one unit.
+All prices are handled as integer tenths of a yen, so the digit arithmetic is
+exact on every grid.
+
+\subsection*{Clustering}
+
+\begin{description}[leftmargin=6.5em, style=nextline, nosep, font=\normalfont\itshape]
+\item[$\mathit{digit}$] The last price digit, $(p \bmod 10\tau)/\tau$ for tick
+  size $\tau$. A \emph{round price} is one whose digit is zero. Under a uniform
+  distribution each digit would carry 10\% of volume.
+\item[$M^{0}$] Share of continuous-session traded volume executing at a round
+  price.
+\item[$M^{kLarge0}$] The same share within large trades initiated on side $k$.
+  This is the paper's headline measure and the primary regressor here.
+\item[$M^{kSmall0}$] The same within small trades. The mechanism predicts it
+  behaves differently, and it serves as the internal contrast.
+\item[$M^{d}$] Share of volume at last digit $d$, for $d = 0,\dots,9$. Digits
+  $1$--$9$ are used only for the placebo test.
+\item[$\mathit{Small}$] Share of volume in trades of exactly one trading unit.
+\end{description}
+
+\subsection*{Liquidity, as the paper defines it}
+
+\begin{description}[leftmargin=6.5em, style=nextline, nosep, font=\normalfont\itshape]
+\item[$\mathit{ES}$] Effective half-spread: the volume-weighted mean of
+  $q(p - m)/m$ in basis points, where $m$ is the midquote prevailing immediately
+  before the trade and $q$ is $+1$ for buy-initiated and $-1$ for sell-initiated
+  trades.
+\item[$\mathit{Imp}(\Delta)$] Price impact: the volume-weighted mean of
+  $q(m_{t+\Delta} - m_t)/m_t$ in basis points, at $\Delta \in \{1\text{s},
+  60\text{s}, 300\text{s}\}$. Trades whose horizon would run past the end of
+  their own session are excluded for that horizon, so no impact is ever measured
+  across the lunch break or the close.
+\item[$\mathit{RS}(\Delta)$] Realized spread, $\mathit{ES} - \mathit{Imp}(\Delta)$,
+  computed on that horizon's own trade set so the decomposition closes exactly.
+\item[$\Delta\mathit{Imp}^{kLarge}$] The round-price impact premium: impact of
+  large round-price trades minus impact of other large trades, on side $k$. Cells
+  with fewer than five trades are set missing.
+\item[$\mathit{Dep}^{\mathrm{ask}0}, \mathit{Dep}^{\mathrm{bid}0}$] Log mean depth
+  at the best quote immediately before round-price trades, with the non-round
+  counterparts $\mathit{Dep}^{\mathrm{ask}1}$, $\mathit{Dep}^{\mathrm{bid}1}$.
+\item[$\mathit{QS}$] Time-weighted quoted spread in basis points, sampled on a
+  one-minute grid over snapshots showing an ordinary two-sided book.
+\item[$\mathit{Amihud}$] Absolute open-to-close return divided by turnover in
+  millions of yen. Auxiliary only: it is included as a familiar yardstick, not as
+  a substitute for the measures above.
+\end{description}
+
+\subsection*{Price formation}
+
+\begin{description}[leftmargin=6.5em, style=nextline, nosep, font=\normalfont\itshape]
+\item[$\mathit{RV}$] Realised variance of five-minute midquote log returns,
+  computed within each session so no return spans the lunch break or the
+  overnight gap.
+\item[$\mathit{VR}$] Variance ratio, the variance of five-minute returns over
+  five times the variance of one-minute returns. $|\mathit{VR} - 1|$ measures
+  departure from a random walk in either direction.
+\item[$\mathit{OFI}$] Order-flow imbalance at the best quote, following
+  \textcite{ContKukanovStoikov2014}, accumulated over quote updates. Implemented
+  from the published definition rather than taken from a library.
+\end{description}
+
+\subsection*{The visible ten-level book}
+
+\begin{description}[leftmargin=6.5em, style=nextline, nosep, font=\normalfont\itshape]
+\item[$\mathit{RDepth}^{\mathrm{ask}0}, \mathit{RDepth}^{\mathrm{bid}0}$] Share of
+  visible ten-level resting volume sitting at round prices, time-averaged on a
+  one-minute grid. This is the measure Ohta's data could not support: it observes
+  round-price orders while they are still standing, rather than after they have
+  been executed against. Under a uniform digit distribution it would be 10\%.
+\item[$\mathit{Slope}$] Depth slope: the regression coefficient of level volume on
+  level index, averaged across the two sides, after
+  \textcite{NaesSkjeltorp2006}.
+\item[$L^{k0}$] Round-price share of limit-order volume submitted on side $k$,
+  inferred from ladder deltas within the visible book
+  (Appendix~\ref{app:ladder}).
+\item[$L^{k0C}$] Cancelled volume at round prices divided by submitted volume at
+  round prices; $L^{k1C}$ is the same for other prices. The hypothesis is that
+  round-price orders are cancelled \emph{less}, because they are executed against
+  first.
+\item[$L^{k0E}$] Executed volume at round prices divided by submitted volume
+  there.
+\item[$C^{k0}$] Round-price share of all cancelled limit-order volume.
+\item[distance classes] Submissions are additionally split by where they sit
+  relative to the prevailing best quote: inside it, at it, outside by less than
+  0.5\%, and outside by 0.5\% or more.
+\end{description}
+
+\subsection*{Controls and sample variables}
+
+\begin{description}[leftmargin=6.5em, style=nextline, nosep, font=\normalfont\itshape]
+\item[$\tau$] Tick size for the stock-day, taken from the encoded JPX schedule and
+  cross-checked against the finest increment observed on the tape.
+\item[$\mathit{RelTick}$] Tick size divided by the opening price, in basis points.
+\item[$D^{n} \times \mathit{Lowvol}$] Interaction of a dummy for the opening
+  price's last digit being $n$ with a dummy for the previous day's realised
+  variance falling below that day's cross-sectional median. These control the
+  mechanical contamination documented in Ohta's Table 2 and reproduced in
+  Section~\ref{sec:stylized}. Digit zero is the omitted category.
+\item[$\mathit{ret}^{\mathrm{on}}$] Overnight return, previous close to opening
+  price.
+\item[$\mathit{Turnover}$] Traded value in yen; entered in logs.
+\item[$\mathit{MktCap}$] Closing price times shares outstanding, from the daily
+  summary product; entered in logs and used to form size quintiles.
+\item[$\mathit{FineTick}$] Indicator for a stock-day on the 0.1-yen grid. These
+  days enter the descriptive results and are excluded from the regressions,
+  following the paper.
+\end{description}

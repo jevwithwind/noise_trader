@@ -1,0 +1,23 @@
+\begin{table}[htbp]
+\centering
+\caption{The round-price price-impact premium in large trades}
+\label{tab:dimp}
+\small
+\begin{threeparttable}
+\begin{tabular}{@{}lrrrrrrr@{}}
+\toprule
+Horizon & Side & Pooled & SE & $t$ & Stock-day mean & Stock-days & Ohta \\
+\midrule
+1s & buy & 0.426 & (0.000) & nan & 0.567 & 441 & -- \\
+1s & sell & 0.946 & (0.000) & nan & 1.051 & 447 & -- \\
+60s & buy & 0.430 & (0.000) & nan & 0.130 & 439 & 1.26 \\
+60s & sell & 1.285 & (0.000) & nan & 2.173 & 445 & 1.12 \\
+300s & buy & -0.526*** & (0.146) & -3.59 & -0.916 & 437 & -- \\
+300s & sell & 0.867 & (0.000) & nan & 2.400 & 441 & -- \\
+\bottomrule
+\end{tabular}
+\begin{tablenotes}[flushleft]\footnotesize
+\item $\Delta\mathit{Imp}$ is the volume-weighted midquote change after trades at a last price digit of zero minus the same quantity for other trades, within large trades on each side, in basis points and signed so that a positive value means the price moved the way the initiator pushed it. The pooled column removes stock and day effects and weights each stock-day by the smaller of its two cell counts; standard errors are clustered by stock and by day. Cells with fewer than five trades are dropped. The final column is Ohta's (2026) 2010--2022 mean at the one-minute horizon. $^{*}p<0.1$, $^{**}p<0.05$, $^{***}p<0.01$.
+\end{tablenotes}
+\end{threeparttable}
+\end{table}

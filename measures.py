@@ -166,12 +166,18 @@ def normalize_day(df: pl.DataFrame, trade_date: _dt.date, unit: int = 100,
 
 
 # ------------------------------------------------------------------ tick size
-def infer_tick10(df: pl.DataFrame) -> int | None:
-    """Smallest positive gap on the observed price grid, in deci-yen.
+#: Distinct observed prices needed before the tape is trusted to reveal a grid
+#: *coarser* than the coded table. With this many levels, a stock landing only on
+#: a coarser lattice by chance is not a serious possibility.
+MIN_PRICES_FOR_COARSE = 8
 
-    Uses quotes and trades together. For an active stock this recovers the true
-    tick exactly; for a quiet one it can overstate it, because the stock simply
-    never used adjacent grid points. `resolve_tick10` handles that asymmetry.
+
+def observed_grid(df: pl.DataFrame) -> tuple[int | None, int, int | None, int | None]:
+    """(min positive gap, number of distinct prices, min price, max price) in deci-yen.
+
+    Quotes and trades together, because the grid a stock is on constrains its
+    quotes as much as its prints -- and the quotes reach further, which is what
+    reveals a day that straddles a band boundary.
     """
     px = pl.concat([
         df.select(p=pl.col("Sell Quote 1 Best")),
@@ -179,23 +185,38 @@ def infer_tick10(df: pl.DataFrame) -> int | None:
         df.filter(pl.col("is_trade")).select(p=pl.col("Execution Price")),
     ]).filter(pl.col("p") > 0)
     if px.height == 0:
-        return None
+        return None, 0, None, None
     grid = (px.with_columns(p10=(pl.col("p") * 10).round(0).cast(pl.Int64))
               .get_column("p10").unique().sort())
-    if grid.len() < 2:
-        return None
+    n = grid.len()
+    lo, hi = (int(grid[0]), int(grid[-1])) if n else (None, None)
+    if n < 2:
+        return None, n, lo, hi
     d = grid.diff().drop_nulls()
     d = d.filter(d > 0)
-    return int(d.min()) if d.len() else None
+    return (int(d.min()) if d.len() else None), n, lo, hi
 
 
-def resolve_tick10(table_tick10: int | None, emp_tick10: int | None) -> tuple[int | None, str]:
+def infer_tick10(df: pl.DataFrame) -> int | None:
+    return observed_grid(df)[0]
+
+
+def resolve_tick10(table_tick10: int | None, emp_tick10: int | None,
+                   n_prices: int = 0) -> tuple[int | None, str]:
     """Reconcile the coded JPX grid with the grid the tape actually used.
 
-    The asymmetry matters. A tape *finer* than the table means the stock is on a
-    grid the table did not predict -- index membership drifted -- and the tape
-    wins. A tape *coarser* than the table means nothing: an illiquid stock simply
-    skipped grid points, and the table remains correct.
+    The tape is what the exchange accepted, so it outranks the table whenever it
+    is informative. It is always informative when it is *finer* than the table:
+    no stock can quote inside a grid it is not on, so a finer tape means the
+    coded regime was wrong for that stock-day -- usually because index membership
+    moved and the point-in-time list did not.
+
+    A *coarser* tape is ambiguous. An illiquid stock can skip grid points and look
+    coarser than it is. But a stock with many distinct prices that all sit on a
+    coarser lattice really is on that lattice, and forcing the table's finer tick
+    on it is a serious error rather than a small one: every price becomes a
+    multiple of the assumed tick, so the last digit is constant and the clustering
+    measure collapses to 100%. The distinct-price count decides which case it is.
     """
     if table_tick10 is None:
         return (emp_tick10, "inferred") if emp_tick10 else (None, "none")
@@ -203,6 +224,10 @@ def resolve_tick10(table_tick10: int | None, emp_tick10: int | None) -> tuple[in
         return table_tick10, "table"
     if emp_tick10 < table_tick10:
         return emp_tick10, "inferred"
+    if emp_tick10 > table_tick10:
+        if n_prices >= MIN_PRICES_FOR_COARSE:
+            return emp_tick10, "inferred"
+        return table_tick10, "table"
     return table_tick10, "table"
 
 
@@ -212,7 +237,8 @@ def digit_expr(p10: pl.Expr, tick10: int) -> pl.Expr:
 
 
 # --------------------------------------------------------------- sample filters
-def sample_filters(df: pl.DataFrame, tick10: int | None, is_t500: bool) -> dict:
+def sample_filters(df: pl.DataFrame, tick10: int | None, is_t500: bool,
+                   tick_constant: bool = True) -> dict:
     """Ohta's stock-day admission criteria, plus the inputs they need."""
     trades = df.filter(pl.col("is_trade") & (pl.col("Volume") > 0))
     out: dict = {"n_rows": df.height, "n_trade_rows": int(trades.height)}
@@ -245,7 +271,12 @@ def sample_filters(df: pl.DataFrame, tick10: int | None, is_t500: bool) -> dict:
         pass_open910=first_sec <= 9 * 3600 + 10 * 60,        # filter (a)
         pass_open200=open_px > 200.0,                         # filter (b)
         pass_n20=n_zar > 20,                                  # filter (c)
-        pass_tick=tick10 is not None and tick10 in C.POWER_OF_TEN_TICKS10,  # filter (d)
+        # Filter (d) has two parts, and both matter. The tick has to be a power of
+        # ten, or the last-digit construction is undefined; and it has to be the
+        # *same* tick all day, or the day mixes two grids and the digit means
+        # different things at different times.
+        pass_tick=(tick10 is not None and tick10 in C.POWER_OF_TEN_TICKS10
+                   and tick_constant),
         open_digit=None if tick10 is None else
         int((round(open_px * 10) % (10 * tick10)) // tick10),
         tick10=tick10, topix500=is_t500,
@@ -785,22 +816,22 @@ def stock_day(df: pl.DataFrame, ticker: str, trade_date: _dt.date, *,
     reported honestly rather than inferred from what is missing.
     """
     n = normalize_day(df, trade_date, unit=unit, wide=wide)
-    emp = infer_tick10(n)
-
-    px = n.filter(pl.col("is_trade") & (pl.col("Volume") > 0))
-    if px.height:
-        pmin10 = int(round(float(px["Execution Price"].min()) * 10))
-        pmax10 = int(round(float(px["Execution Price"].max()) * 10))
-        table_tick = C.day_tick_constant10(pmin10, pmax10, is_t500)
-    else:
-        table_tick = None
-    tick10, source = resolve_tick10(table_tick, emp)
+    # The grid is read off quotes as well as trades: quotes reach further than
+    # prints, so they are what expose a day whose price range crosses a tick-size
+    # band boundary and therefore ran on two grids.
+    emp, n_prices, gmin10, gmax10 = observed_grid(n)
+    table_tick = (C.day_tick_constant10(gmin10, gmax10, is_t500)
+                  if gmin10 is not None else None)
+    tick10, source = resolve_tick10(table_tick, emp, n_prices)
 
     row: dict = {"date": trade_date, "ticker": ticker}
-    row.update(sample_filters(n, tick10, is_t500))
+    row.update(sample_filters(n, tick10, is_t500,
+                              tick_constant=table_tick is not None))
     row.update(tick_source=source, tick_table10=table_tick, tick_emp10=emp,
                tick_mismatch=bool(table_tick is not None and emp is not None
                                   and table_tick != emp),
+               tick_constant=table_tick is not None, n_grid_prices=n_prices,
+               grid_min10=gmin10, grid_max10=gmax10,
                fine_tick_day=bool(tick10 == 1), unit=unit)
 
     unknown = n.filter(pl.col("is_trade") & pl.col("sign").is_null())

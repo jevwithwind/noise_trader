@@ -1,0 +1,72 @@
+% =====================================================================
+\section{Related work}
+\label{sec:lit}
+% =====================================================================
+
+\paragraph{Clustering as a measurement problem.}
+\textcite{Harris1991Clustering} established the facts every later study works
+against: trades concentrate on round fractions, and that concentration rises with
+volatility and with the price level, falls with market capitalisation and trading
+frequency, and rises as the tick grid gets finer. The last of these matters
+directly here, because the Tokyo Stock Exchange operates two grids at once and
+moved a large part of its market onto the finer one in 2023.
+\textcite{ChungVanNessVanNess2004} add the correlation with the bid--ask spread
+that makes spread a necessary control rather than an optional one.
+
+\paragraph{Who does the clustering.}
+The behavioural reading is that round numbers are cognitive shortcuts.
+\textcite{KuoLinZhao2015} give it teeth by showing that the investors who use
+round-price limit orders most heavily also perform worst, which is what licenses
+reading a round-price order as an uninformed one.
+\textcite{BhattacharyaHoldenJacobsen2012} take the same observation in a
+tradable direction, documenting buy--sell imbalances immediately around round
+numbers. \textcite{DavisVanNessVanNess2014} supply the fact that organises
+Ohta's whole argument: clustering lives in \emph{large} trades, not small ones.
+
+\paragraph{Clustering in the book, not only in the tape.}
+\textcite{AhnCaiCheung2005} look at the limit order book directly and find it
+thicker at round prices. That is the closest antecedent to the depth-based
+measure introduced in Section~\ref{sec:measures}, and the difference is one of
+data: a study that sees only executed trades observes round-price orders after
+they have been taken, whereas a study that sees the standing book observes them
+while they are still exposed. \textcite{BoxGriffith2016} is the closest design
+sibling to the present paper, pairing buy/sell asymmetry in clustering with the
+price impact of round-price trades.
+
+\paragraph{Noise traders and liquidity.}
+Whether noise trading helps or harms liquidity is genuinely unsettled, and this
+study cannot settle it. In \textcite{Kyle1985} noise traders are the cover under
+which informed traders operate, so more of them means a deeper market.
+\textcite{PeressSchmidt2020} find the empirical counterpart: when noise traders
+are distracted, liquidity deteriorates. Against that,
+\textcite{Foucault1999} formalises pick-off risk --- the cost of leaving a limit
+order unrevised --- and \textcite{AquilinaBudishONeill2022} measure the speed
+race that determines who bears it. If clustering marks orders that are about to
+be picked off, it may mark a market that is about to become more expensive to
+trade, not less. Section~\ref{sec:liquidity} reports which way the 2024 data
+falls, and treats either answer as a result.
+
+\paragraph{Reading price impact carefully.}
+Ohta's second contribution is a warning about interpretation.
+\textcite{GlostenMilgrom1985} and \textcite{Hasbrouck1991} make price impact the
+canonical measure of information asymmetry, and
+\textcite{HendershottJonesMenkveld2011} give the decomposition of the effective
+spread into impact and realized spread that this study uses. But in a limit order
+market, impact also rises when stale orders sit in the book waiting to be taken,
+which has nothing to do with anyone being informed. The impact premium at round
+prices reported in Section~\ref{sec:stylized} is exactly that second channel.
+
+\paragraph{Beyond the best quote.}
+\textcite{BiaisHillionSpatt1995} is the canonical anatomy of a pure limit order
+market of the kind the TSE runs. \textcite{CaoHanschWang2009} justify looking
+past the best quote at all, finding that the levels behind it contribute
+materially to price discovery; \textcite{NaesSkjeltorp2006} turn the shape of
+those levels into the depth-slope measure used here. The order-flow imbalance
+construction is that of \textcite{ContKukanovStoikov2014}.
+
+\paragraph{Inference.}
+Every panel regression below carries stock and day fixed effects with standard
+errors clustered on both margins, following \textcite{CameronGelbachMiller2011}.
+With the same stock appearing on 240 days and the same day covering a thousand
+stocks, the alternative is not a slightly optimistic standard error but a badly
+wrong one.

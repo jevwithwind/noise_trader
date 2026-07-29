@@ -28,7 +28,7 @@ import s0_common as C
 OUT = os.path.join(C.RESULTS, "s2_ingest")
 TICK_ROOT = os.path.join(C.RAW_ROOT, "個別株式2024", "TICST120")
 SUMMARY_ROOT = os.path.join(C.RAW_ROOT, "個別株式2024", "TICSS110")
-CKPT = os.path.join(OUT, "ingest_ckpt.json")
+CKPT_TMPL = os.path.join(OUT, "ingest_ckpt{tag}.json")
 
 
 def store_stats() -> tuple[int, float]:
@@ -52,9 +52,17 @@ def main() -> int:
     ap.add_argument("--workers", default="2")
     ap.add_argument("--batches", default="all",
                     help="'all' or comma-separated batch indices, e.g. 0,1")
-    ap.add_argument("--max-stream", type=int, default=512)
+    ap.add_argument("--max-stream", type=int, default=0,
+                    help="raise the library's streaming threshold (0 = leave alone). "
+                         "Almost always leave this at 0: see the note in main().")
     ap.add_argument("--summary", action="store_true",
                     help="also ingest the daily-summary product")
+    ap.add_argument("--by-month", action="store_true",
+                    help="ingest the whole universe month by month, so every "
+                         "finished date is complete and the panel can be built "
+                         "incrementally while the rest still runs")
+    ap.add_argument("--months", default="",
+                    help="comma-separated YYYYMM to restrict --by-month")
     args = ap.parse_args()
     workers = args.workers if args.workers == "auto" else int(args.workers)
 
@@ -63,20 +71,27 @@ def main() -> int:
         import tse_tick
         import tse_tick.ingest as TI
 
-        # Raise the streaming threshold so a 400-code batch streams rather than
-        # concatenating the day. The constant bounds how many Parquet writers are
-        # open at once, not how much data is held: under streaming the library's
-        # own worker-memory estimate is a flat 3 GB regardless of ticker count,
-        # because each part is written and dropped. Several hundred open writers
-        # is comfortable here.
-        old = TI._MAX_STREAM_TICKERS
-        TI._MAX_STREAM_TICKERS = args.max_stream
+        # Do NOT raise the streaming threshold. Ingest workers are *spawned*
+        # processes that re-import the library, so a constant patched here never
+        # reaches them: they would keep concatenating the whole day while the
+        # parent, seeing the patched value, sized their memory as if they were
+        # streaming and started too many of them. That combination is what
+        # exhausted memory. Keeping batches at or below the library's own
+        # threshold makes the workers stream natively, which bounds each of them
+        # at roughly one part and lets several run at once.
         print(f"=== S2 step 1: ingest (period={args.period}, workers={args.workers}) ===")
-        print(f"streaming threshold raised {old} -> {TI._MAX_STREAM_TICKERS}\n")
+        if args.max_stream:
+            old = TI._MAX_STREAM_TICKERS
+            TI._MAX_STREAM_TICKERS = args.max_stream
+            print(f"streaming threshold raised {old} -> {TI._MAX_STREAM_TICKERS} "
+                  f"(parent only -- see the comment above)")
+        print(f"library streaming threshold: {TI._MAX_STREAM_TICKERS} codes per request\n")
 
         C.ensure_dir(C.STORE)
         C.ensure_dir(OUT)
-        log = C.read_json(CKPT, {"runs": []})
+        tag = "_" + (args.months.replace(",", "-") if args.months else args.period)
+        ckpt = CKPT_TMPL.format(tag=tag)
+        log = C.read_json(ckpt, {"runs": []})
 
         if args.summary:
             print("--- daily summary (TICSS110) ---")
@@ -88,22 +103,47 @@ def main() -> int:
             print(f"    {time.perf_counter()-t0:.0f}s\n")
 
         bdir = os.path.join(OUT, "batches")
-        files = sorted(f for f in os.listdir(bdir) if f.endswith(".txt"))
-        if args.batches != "all":
-            want = {int(x) for x in args.batches.split(",")}
-            files = [f for f in files if int(f[6:8]) in want]
-        print(f"batches to ingest: {len(files)}\n")
+        if args.by_month:
+            # One unit of work per calendar month, covering the whole universe, so
+            # a finished month is finished for every stock. Splitting by ticker
+            # instead would leave every date partially written until the last
+            # batch, and nothing downstream could start.
+            all_t: set[str] = set()
+            for f in sorted(os.listdir(bdir)):
+                if f.endswith(".txt"):
+                    with open(os.path.join(bdir, f), encoding="utf-8") as fh:
+                        all_t |= {l.strip() for l in fh if l.strip()}
+            months = ([m.strip() for m in args.months.split(",") if m.strip()]
+                      or [f"2024{m:02d}" for m in range(1, 13)])
+            units = [(m, all_t) for m in months]
+            print(f"universe: {len(all_t)} codes; ingesting {len(units)} months\n")
+        else:
+            files = sorted(f for f in os.listdir(bdir) if f.endswith(".txt"))
+            if args.batches != "all":
+                want = {int(x) for x in args.batches.split(",")}
+                files = [f for f in files if int(f[6:8]) in want]
+            # Periods first, batches within them. Running several processes over
+            # disjoint month ranges is how this parallelises beyond one process's
+            # worker cap, and disjoint months means no two processes ever write
+            # the same date partition or race on its coverage marker.
+            periods = ([m.strip() for m in args.months.split(",") if m.strip()]
+                       or [args.period])
+            units = []
+            for p in periods:
+                for bf in files:
+                    with open(os.path.join(bdir, bf), encoding="utf-8") as fh:
+                        units.append((p, {l.strip() for l in fh if l.strip()}))
+            print(f"units to ingest: {len(units)} "
+                  f"({len(periods)} period(s) x {len(files)} batches)\n")
 
         n0, gb0 = store_stats()
         t_all = time.perf_counter()
-        for bf in files:
-            with open(os.path.join(bdir, bf), encoding="utf-8") as fh:
-                tickers = {l.strip() for l in fh if l.strip()}
-            print(f"--- {bf}: {len(tickers)} codes "
+        for period, tickers in units:
+            print(f"--- {period}: {len(tickers)} codes "
                   f"({min(tickers)}..{max(tickers)}) ---", flush=True)
             t0 = time.perf_counter()
             res = tse_tick.ingest_period(
-                input_root=TICK_ROOT, output_dir=C.STORE, period=args.period,
+                input_root=TICK_ROOT, output_dir=C.STORE, period=period,
                 data_type="individual_stock", language="en", resume=True,
                 max_workers=workers, ticker_filter=tickers, compression="zstd")
             el = time.perf_counter() - t0
@@ -113,10 +153,11 @@ def main() -> int:
             print(f"    {el/60:.1f} min, {dates} dates, {rows:,} rows, "
                   f"+{n1-n0:,} files, +{gb1-gb0:.1f} GB "
                   f"(store {n1:,} files, {gb1:.1f} GB)", flush=True)
-            log["runs"].append({"batch": bf, "codes": len(tickers), "minutes": round(el/60, 1),
-                                "dates": dates, "rows": rows, "store_files": n1,
+            log["runs"].append({"unit": period, "codes": len(tickers),
+                                "minutes": round(el / 60, 1), "dates": dates,
+                                "rows": rows, "store_files": n1,
                                 "store_gb": round(gb1, 2)})
-            C.atomic_json(CKPT, log)
+            C.atomic_json(ckpt, log)
             n0, gb0 = n1, gb1
 
         el = time.perf_counter() - t_all

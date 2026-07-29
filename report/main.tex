@@ -1,0 +1,50 @@
+% =====================================================================
+%  Noise-trader activity, price formation and liquidity on the TSE
+%  Compile: latexmk -pdf main.tex   (pdflatex + biber)
+% =====================================================================
+\documentclass[12pt,a4paper]{article}
+\input{preamble}
+
+\title{\textbf{Noise-Trader Activity, Price Formation and Liquidity\\
+on the Tokyo Stock Exchange}\\[0.5em]
+\large A prototype extension of Ohta (2026) to the 2024 tape}
+\author{Kevin Lee}
+\date{July 2026}
+
+\begin{document}
+
+\maketitle
+
+\begin{abstract}
+\noindent
+\input{chapters/00_abstract}
+\end{abstract}
+
+\vspace{1em}
+\tableofcontents
+\clearpage
+
+\input{chapters/01_intro}
+\input{chapters/02_literature}
+\input{chapters/03_data}
+\input{chapters/04_measures}
+\input{chapters/05_stylized}
+\input{chapters/06_liquidity}
+\input{chapters/07_book}
+\input{chapters/08_robustness}
+\input{chapters/09_strategy}
+\input{chapters/10_discussion}
+
+\cleardoublepage
+\printbibliography[heading=bibintoc,title={References}]
+
+\clearpage
+\begin{appendices}
+\input{appendices/A_variables}
+\clearpage
+\input{appendices/B_ladder}
+\clearpage
+\input{appendices/C_repro}
+\end{appendices}
+
+\end{document}

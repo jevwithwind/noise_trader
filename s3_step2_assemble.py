@@ -136,8 +136,15 @@ def main() -> int:
             mm = daily.filter(pl.col("tick_mismatch"))
             print(f"tick table/tape disagreements: {mm.height:,} "
                   f"({100*mm.height/max(scored.height,1):.2f}% of evaluated stock-days)")
-            if mm.height > 0.01 * scored.height:
-                print("  WARNING: above the 1% tolerance -- inspect before trusting the panel")
+            print("  These are resolved in the tape's favour wherever it is "
+                  "informative, so a disagreement is a diagnostic of index "
+                  "membership drift rather than an error. What would be an error "
+                  "is a stock-day whose digits collapse onto one value:")
+            if "m0_all" in daily.columns:
+                bad = daily.filter(pl.col("in_sample") & (pl.col("m0_all") > 0.6))
+                print(f"  stock-days with M0 above 60%: {bad.height:,}"
+                      + ("  <- inspect: this is what a wrong tick looks like"
+                         if bad.height else "  (none)"))
         if "tick_source" in daily.columns:
             print("tick source: " + ", ".join(
                 f"{r['tick_source']}={r['len']:,}" for r in
