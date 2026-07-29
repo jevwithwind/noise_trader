@@ -45,8 +45,8 @@ def write_date(date: str, rows: list[dict], buckets: list[dict]) -> None:
 
 def main() -> int:
     ap = argparse.ArgumentParser()
-    ap.add_argument("--start", default="20240101")
-    ap.add_argument("--end", default="20241231")
+    ap.add_argument("--start", default=f"{C.YEAR}0101")
+    ap.add_argument("--end", default=f"{C.YEAR}1231")
     ap.add_argument("--workers", type=int, default=6)
     ap.add_argument("--no-wide", action="store_true",
                     help="skip the ten-level book measures (RDepth, slope, quoted spread)")
@@ -69,7 +69,7 @@ def main() -> int:
         print(f"wide book measures: {wide}   ladder tickers: {len(ladder)}   "
               f"workers: {args.workers}")
 
-        cal = pl.read_csv(os.path.join(C.RESULTS, "s0_inst", "calendar_2024.csv"))
+        cal = pl.read_csv(C.CALENDAR_CSV)
         usable = set(cal.filter(pl.col("status") == "ok")["date"].cast(pl.Utf8).to_list())
         dates = [d for d in S3.store_dates()
                  if args.start <= d <= args.end and d in usable]

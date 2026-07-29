@@ -66,7 +66,7 @@ def main() -> int:
 
     failed = [c for c in checks if not c[1]]
 
-    lines = ["# S4 -- replication of the paper's stylized facts on 2024", "",
+    lines = [f"# S4 -- replication of the paper's stylized facts on {C.YEAR}", "",
              "## Stop rule", "",
              "These are treated as necessary conditions, not results. Each is a "
              "robust, repeatedly documented feature of the data; failing one "
@@ -75,7 +75,7 @@ def main() -> int:
     for name, ok, detail in checks:
         lines.append(f"| {name} | {'PASS' if ok else 'FAIL'} | {detail} |")
     lines += ["", "## Measures against the published benchmarks", "",
-              "| Measure | 2024 | SE | Ohta 2010--2022 |", "|---|---|---|---|"]
+              "| Measure | Sample | SE | Ohta 2010--2022 |", "|---|---|---|---|"]
     for k, lab, b in (("m0_all", "M0", 13.5), ("m_b_large0", "M^BLarge0", 14.8),
                       ("m_s_large0", "M^SLarge0", 14.3),
                       ("m_b_small0", "M^BSmall0", 11.1),

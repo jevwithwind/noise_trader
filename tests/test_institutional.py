@@ -160,7 +160,10 @@ def test_topix500_membership_loads():
     assert 400 < len(t500) < 700, f"implausible TOPIX500 size: {len(t500)}"
     for t in ("7203", "8306", "8604"):
         assert t in t500, f"{t} should be a TOPIX500 constituent"
-    assert all(len(t) == 4 and t.isdigit() for t in t500)
+    # Codes are four characters but not necessarily numeric: the exchange began
+    # issuing alphanumeric codes such as "130A" in 2024. Anything that parses them
+    # as integers will drop those stocks silently.
+    assert all(len(t) == 4 and t.isalnum() for t in t500)
 
 
 def test_write_guard_blocks_outside_paths():

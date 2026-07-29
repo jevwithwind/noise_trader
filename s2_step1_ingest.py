@@ -26,8 +26,8 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import s0_common as C
 
 OUT = os.path.join(C.RESULTS, "s2_ingest")
-TICK_ROOT = os.path.join(C.RAW_ROOT, "個別株式2024", "TICST120")
-SUMMARY_ROOT = os.path.join(C.RAW_ROOT, "個別株式2024", "TICSS110")
+TICK_ROOT = C.RAW_TICKS
+SUMMARY_ROOT = C.RAW_SUMMARY
 CKPT_TMPL = os.path.join(OUT, "ingest_ckpt{tag}.json")
 
 
@@ -48,7 +48,7 @@ def store_stats() -> tuple[int, float]:
 
 def main() -> int:
     ap = argparse.ArgumentParser()
-    ap.add_argument("--period", default="2024")
+    ap.add_argument("--period", default=str(C.YEAR))
     ap.add_argument("--workers", default="2")
     ap.add_argument("--batches", default="all",
                     help="'all' or comma-separated batch indices, e.g. 0,1")
@@ -97,7 +97,7 @@ def main() -> int:
             print("--- daily summary (TICSS110) ---")
             t0 = time.perf_counter()
             tse_tick.ingest_period(input_root=SUMMARY_ROOT, output_dir=C.STORE,
-                                   period="2024", data_type="stock_summary",
+                                   period=str(C.YEAR), data_type="stock_summary",
                                    language="en", resume=True, max_workers=workers,
                                    compression="zstd")
             print(f"    {time.perf_counter()-t0:.0f}s\n")
@@ -114,7 +114,7 @@ def main() -> int:
                     with open(os.path.join(bdir, f), encoding="utf-8") as fh:
                         all_t |= {l.strip() for l in fh if l.strip()}
             months = ([m.strip() for m in args.months.split(",") if m.strip()]
-                      or [f"2024{m:02d}" for m in range(1, 13)])
+                      or list(C.MONTHS) or [f"{C.YEAR}{m:02d}" for m in range(1, 13)])
             units = [(m, all_t) for m in months]
             print(f"universe: {len(all_t)} codes; ingesting {len(units)} months\n")
         else:

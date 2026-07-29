@@ -37,7 +37,7 @@ def main() -> int:
         if not dates:
             fails.append("store is empty")
 
-        cal = pl.read_csv(os.path.join(C.RESULTS, "s0_inst", "calendar_2024.csv"))
+        cal = pl.read_csv(C.CALENDAR_CSV)
         usable = set(cal.filter(pl.col("status") == "ok")["date"].cast(pl.Utf8).to_list())
         have = set(dates) & usable
         missing = sorted(usable - set(dates))

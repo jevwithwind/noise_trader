@@ -58,11 +58,15 @@ def main() -> int:
         ax.plot(x, [100 * v for v in daily["bs"]], color="0.45", lw=1.0,
                 ls=":", label="small, buy-initiated")
         ax.axhline(10, color="0.35", lw=0.8, ls="--", zorder=0)
+        # The afternoon session lengthened on 2024-11-05. Mark it only when the
+        # panel actually spans that date.
         import datetime as dt
-        ax.axvline(dt.date(2024, 11, 5), color="0.6", lw=0.8)
-        ax.annotate("session extended to 15:30", xy=(dt.date(2024, 11, 5), ax.get_ylim()[1]),
-                    xytext=(-6, -12), textcoords="offset points", fontsize=7,
-                    color="0.4", ha="right")
+        ext = C.TSE_CLOSE_EXTENSION
+        if x and min(x) <= ext <= max(x):
+            ax.axvline(ext, color="0.6", lw=0.8)
+            ax.annotate("session extended to 15:30", xy=(ext, ax.get_ylim()[1]),
+                        xytext=(-6, -12), textcoords="offset points", fontsize=7,
+                        color="0.4", ha="right")
         ax.set_ylabel("Cross-sectional mean (%)")
         ax.legend(frameon=False, fontsize=8, ncol=3, loc="upper center")
         fig.autofmt_xdate()

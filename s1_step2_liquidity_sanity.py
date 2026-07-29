@@ -44,7 +44,7 @@ def main() -> int:
             d = dt.datetime.strptime(date, "%Y%m%d").date()
             print(f"--- {ticker} {date}  ({note}) ---")
             try:
-                df = read_ticks(C.RAW_2024, ticker_filter={ticker}, date=date, language="en")
+                df = read_ticks(C.RAW_ANCHORS, ticker_filter={ticker}, date=date, language="en")
             except Exception as exc:
                 print(f"  skipped: {exc}\n")
                 continue

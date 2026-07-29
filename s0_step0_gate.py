@@ -30,12 +30,12 @@ def main() -> int:
         print("=== S0 step 0: environment gate ===\n")
 
         # --- raw feed readable
-        ok_raw = os.path.isdir(C.RAW_2024)
-        print(f"[{'ok' if ok_raw else 'FAIL'}] raw feed readable: {C.RAW_2024}")
+        ok_raw = os.path.isdir(C.RAW_TICKS)
+        print(f"[{'ok' if ok_raw else 'FAIL'}] raw feed readable: {C.RAW_TICKS}")
         if not ok_raw:
             fails.append("raw feed not readable")
         else:
-            months = sorted(d.name for d in os.scandir(C.RAW_2024) if d.is_dir())
+            months = sorted(d.name for d in os.scandir(C.RAW_TICKS) if d.is_dir())
             info["raw_months"] = months
             print(f"       months present: {len(months)} ({months[0]}..{months[-1]})")
             if len(months) != 12:

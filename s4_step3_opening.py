@@ -5,7 +5,7 @@ that opens at a price ending far from zero and then barely moves can never print
 a round price, so its measure is low for a reason that has nothing to do with
 noise traders. The fix is to control for the interaction of the opening digit
 with a low-volatility indicator, and this step confirms the distortion is present
-in 2024 and that those controls are therefore needed.
+in the sample and that those controls are therefore needed.
 """
 from __future__ import annotations
 

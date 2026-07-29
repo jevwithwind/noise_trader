@@ -62,9 +62,15 @@ def main() -> int:
     tee = C.Tee("s2_step0_universe")
     try:
         print("=== S2 step 0: sample universe (Ohta's selection) ===\n")
-        cal = pl.read_csv(os.path.join(C.RESULTS, "s0_inst", "calendar_2024.csv"))
+        cal = pl.read_csv(C.CALENDAR_CSV)
         usable = set(cal.filter(pl.col("status") == "ok")["date"].cast(pl.Utf8).to_list())
-        print(f"usable trading days: {len(usable)}")
+        # Ohta keeps a stock when it qualifies on more than half the trading days.
+        # That test is applied over the months the study actually covers, so the
+        # universe is self-contained and uses no information from outside the
+        # sample.
+        usable = {d for d in usable if C.in_study_months(d)}
+        print(f"usable trading days in study months "
+              f"({', '.join(C.MONTHS) if C.MONTHS else 'whole year'}): {len(usable)}")
 
         df = load_summary(usable)
         print(f"summary rows loaded: {df.height:,}")

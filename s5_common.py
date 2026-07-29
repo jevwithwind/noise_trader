@@ -42,6 +42,11 @@ PRIMARY_X = "m_b_large0"
 CONTROLS = ["rel_tick", "ln_yenvol_l1", "ln_rv5_l1", "ln_effsprd_l1",
             "ret_overnight", "fine_tick_day"]
 
+#: Largest calendar gap that still counts as "the previous trading day". Covers
+#: weekends and consecutive public holidays; anything longer means the sample
+#: skips a stretch, and a lag across it would be a fiction.
+MAX_LAG_GAP_DAYS = 5
+
 
 def build_frame(df: pl.DataFrame, winsorize: bool = True) -> pl.DataFrame:
     """Transform, lag and winsorise the panel for estimation."""
@@ -63,9 +68,21 @@ def build_frame(df: pl.DataFrame, winsorize: bool = True) -> pl.DataFrame:
             rel_tick=pl.when(pl.col("open_px") > 0)
             .then(pl.col("tick10") / 10.0 / pl.col("open_px") * 1e4).otherwise(None))
 
+    # A lag is only a lag if the previous row is genuinely the previous trading
+    # day. When the sample skips months -- as it does when only part of the year
+    # has been ingested -- a plain one-row shift would silently treat a gap of
+    # weeks as an overnight lag, which is worse than having no lag at all.
+    df = df.with_columns(prev_date=pl.col("date").shift(1).over("ticker"))
+    gap = (pl.col("date").cast(pl.Date) - pl.col("prev_date").cast(pl.Date)).dt.total_days()
+    df = df.with_columns(day_gap=gap)
+    df = df.with_columns(
+        prev_ticker_ok=(pl.col("ticker") == pl.col("ticker").shift(1))
+        & pl.col("day_gap").is_not_null() & (pl.col("day_gap") <= MAX_LAG_GAP_DAYS))
+
     # Overnight return: previous close to this open, within stock.
-    df = df.with_columns(prev_close=pl.col("close_px").shift(1).over("ticker"),
-                         prev_ticker_ok=pl.col("ticker") == pl.col("ticker").shift(1))
+    df = df.with_columns(prev_close=pl.when(pl.col("prev_ticker_ok"))
+                         .then(pl.col("close_px").shift(1).over("ticker"))
+                         .otherwise(None))
     df = df.with_columns(
         ret_overnight=pl.when(pl.col("prev_ticker_ok") & (pl.col("prev_close") > 0))
         .then(pl.col("open_px") / pl.col("prev_close") - 1.0).otherwise(None))

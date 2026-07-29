@@ -27,7 +27,7 @@ import measures as M
 from tse_tick import read_ticks
 
 OUT = os.path.join(C.RESULTS, "s1_pilot")
-RAW = C.RAW_2024
+RAW = C.RAW_ANCHORS
 TOL_PP = 0.3       # percentage points
 TOL_COUNT = 25
 

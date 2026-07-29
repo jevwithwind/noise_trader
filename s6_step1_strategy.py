@@ -76,12 +76,20 @@ def main() -> int:
         print(f"signal formed on {sig.height:,} stock-days, "
               f"{sig['date'].n_unique()} days")
 
-        # Forward return, within stock, with corporate actions screened out.
+        # Forward return, within stock, over a genuine next trading day. If the
+        # sample skips a stretch of the calendar, the next row can be weeks away,
+        # and treating that as an overnight return would invent a position nobody
+        # could have held.
         sig = sig.sort(["ticker", "date"]).with_columns(
             nxt=pl.col("close_px").shift(-1).over("ticker"),
+            nxt_date=pl.col("date").shift(-1).over("ticker"),
             same=(pl.col("ticker") == pl.col("ticker").shift(-1)))
         sig = sig.with_columns(
-            fwd=pl.when(pl.col("same") & (pl.col("close_px") > 0))
+            gap=(pl.col("nxt_date").cast(pl.Date) - pl.col("date").cast(pl.Date))
+            .dt.total_days())
+        sig = sig.with_columns(
+            fwd=pl.when(pl.col("same") & (pl.col("close_px") > 0)
+                        & pl.col("gap").is_not_null() & (pl.col("gap") <= S5.MAX_LAG_GAP_DAYS))
             .then(pl.col("nxt") / pl.col("close_px") - 1.0).otherwise(None))
         n_before = sig.height
         sig = sig.drop_nulls("fwd").filter(pl.col("fwd").abs() <= MAX_ABS_RET)

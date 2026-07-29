@@ -17,7 +17,7 @@ def main() -> int:
     backends = C.read_json(os.path.join(OUT, "backends.json"), {})
     cal = C.read_json(os.path.join(OUT, "calendar_summary.json"), {})
     yob = C.read_json(os.path.join(OUT, "yobine_summary.json"), {})
-    caldf = pl.read_csv(os.path.join(OUT, "calendar_2024.csv"))
+    caldf = pl.read_csv(C.CALENDAR_CSV)
 
     by_status = {r["status"]: r["len"] for r in
                  caldf.group_by("status").len().iter_rows(named=True)}

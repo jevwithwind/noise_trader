@@ -16,7 +16,6 @@ from typing import Iterable
 PROJ = r"E:\MTEC\prototype"
 STORE = r"D:\MTEC_tick_store"
 RAW_ROOT = r"G:\needs"
-RAW_2024 = r"G:\needs\個別株式2024\TICST120"
 RESULTS = os.path.join(PROJ, "results")
 LOGS = os.path.join(PROJ, "logs")
 REPORT = os.path.join(PROJ, "report")
@@ -24,7 +23,17 @@ REPORT = os.path.join(PROJ, "report")
 # Reference assets borrowed read-only from the thesis project.
 TOPIX500_CSV = r"G:\flash_crash\topix\topix500_membership_by_year.csv"
 
-YEAR = 2024
+#: The study year. Everything downstream derives from it.
+YEAR = 2025
+#: Months of that year the study covers. Empty means the whole year.
+MONTHS = ["202501", "202502", "202503", "202504"]
+
+RAW_TICKS = os.path.join(RAW_ROOT, f"個別株式{YEAR}", "TICST120")
+RAW_SUMMARY = os.path.join(RAW_ROOT, f"個別株式{YEAR}", "TICSS110")
+#: The two hand-verified anchor stock-days are 2024 dates. Validation of the
+#: measure library is deliberately independent of whichever year is being
+#: studied, so this path stays fixed.
+RAW_ANCHORS = os.path.join(RAW_ROOT, "個別株式2024", "TICST120")
 
 
 def write_guard(path: str) -> str:
@@ -256,7 +265,7 @@ def day_tick_constant10(pmin10: int, pmax10: int, is_topix500: bool) -> int | No
     return lo if lo == hi else None
 
 
-def load_topix500(years: Iterable[int] = (2023, 2024)) -> set[str]:
+def load_topix500(years: Iterable[int] | None = None) -> set[str]:
     """Point-in-time TOPIX500 membership, as a union over the given years.
 
     Membership is a December snapshot per year (the TOPIX rebalance lands in late
@@ -266,7 +275,11 @@ def load_topix500(years: Iterable[int] = (2023, 2024)) -> set[str]:
     """
     import csv
 
-    want = {int(y) for y in years}
+    # The snapshot is taken each December, after the late-October rebalance, so a
+    # stock trading in the study year may have joined or left under either the
+    # previous or the current year's list. The union is the "possibly on the fine
+    # grid" set, and the empirical tick inference arbitrates per stock-day.
+    want = {int(y) for y in (years if years is not None else (YEAR - 1, YEAR))}
     out: set[str] = set()
     with open(TOPIX500_CSV, encoding="utf-8-sig") as fh:
         for row in csv.DictReader(fh):
@@ -278,9 +291,26 @@ def load_topix500(years: Iterable[int] = (2023, 2024)) -> set[str]:
 
 
 # --------------------------------------------------------------------- data calendar
-# Verified by direct inventory of G:\needs on 2026-07-29.
-KNOWN_MISSING_DATES = {"20240424", "20240425", "20240426", "20240430"}
-# 2024-04-23 delivered only 10 shards where adjacent days carry 20-29: a download
-# that died mid-day. Excluded as incomplete rather than trusted as a short day.
-KNOWN_TRUNCATED_DATES = {"20240423"}
+# Delivery gaps found by direct inventory of the feed. Recorded per year so the
+# exclusion is made once, at the calendar, and no later stage can rediscover a
+# partial day and mistake it for a quiet one.
+_DELIVERY_GAPS: dict[int, tuple[set[str], set[str]]] = {
+    # 2024: four dates never arrived; 2024-04-23 arrived with 10 shards against a
+    # monthly median of 22 -- a transfer that stopped part-way.
+    2024: ({"20240424", "20240425", "20240426", "20240430"}, {"20240423"}),
+    # 2025: populated from the inventory in s0_step2.
+    2025: (set(), set()),
+}
+
+KNOWN_MISSING_DATES = _DELIVERY_GAPS.get(YEAR, (set(), set()))[0]
+KNOWN_TRUNCATED_DATES = _DELIVERY_GAPS.get(YEAR, (set(), set()))[1]
 EXCLUDED_DATES = KNOWN_MISSING_DATES | KNOWN_TRUNCATED_DATES
+
+
+def in_study_months(date: str) -> bool:
+    """True when a YYYYMMDD date falls inside the months the study covers."""
+    return (not MONTHS) or date[:6] in set(MONTHS)
+
+
+#: The frozen trading calendar for the study year.
+CALENDAR_CSV = os.path.join(RESULTS, "s0_inst", f"calendar_{YEAR}.csv")

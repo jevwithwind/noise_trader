@@ -1,7 +1,7 @@
-"""S0 step 2 -- inventory the 2024 raw feed and freeze the trading calendar.
+"""S0 step 2 -- inventory the raw feed and freeze the trading calendar.
 
 Directory metadata only; no zip is opened. Produces the calendar every later stage
-trusts, with the April delivery gaps marked so they are excluded once, here, and
+trusts, with any delivery gaps marked so they are excluded once, here, and
 never rediscovered downstream.
 """
 from __future__ import annotations
@@ -25,12 +25,12 @@ TRUNCATION_RATIO = 0.55
 def main() -> int:
     tee = C.Tee("s0_step2_raw_inventory")
     try:
-        print("=== S0 step 2: raw feed inventory (2024) ===\n")
+        print(f"=== S0 step 2: raw feed inventory ({C.YEAR}) ===\n")
         shards: dict[str, list[int]] = defaultdict(list)
         nbytes: dict[str, int] = defaultdict(int)
         months: dict[str, set[str]] = defaultdict(set)
 
-        month_dirs = sorted((d.name, d.path) for d in os.scandir(C.RAW_2024) if d.is_dir())
+        month_dirs = sorted((d.name, d.path) for d in os.scandir(C.RAW_TICKS) if d.is_dir())
         for mname, mpath in month_dirs:
             for e in os.scandir(mpath):
                 m = FNAME.match(e.name)
@@ -84,7 +84,7 @@ def main() -> int:
         import polars as pl
         df = pl.DataFrame(rows)
         C.ensure_dir(OUT)
-        path = os.path.join(OUT, "calendar_2024.csv")
+        path = C.CALENDAR_CSV
         df.write_csv(C.write_guard(path))
 
         by_status = df.group_by("status").len().sort("status")
@@ -99,7 +99,7 @@ def main() -> int:
               f"max {usable['n_shards'].max()}")
 
         fails = []
-        # The April gaps are the documented, expected damage. Anything else is news.
+        # Documented gaps are expected damage. Anything else is news.
         unexpected = [f for f in flagged if f[0] not in C.EXCLUDED_DATES]
         if unexpected:
             print("\nNEW anomalies not in the documented gap list:")

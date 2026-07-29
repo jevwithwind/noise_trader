@@ -51,7 +51,7 @@ def main() -> int:
             d = dt.datetime.strptime(date, "%Y%m%d").date()
             for ticker, path, size in picks:
                 store_df = pl.read_parquet(path)
-                raw_df = read_ticks(C.RAW_2024, ticker_filter={ticker},
+                raw_df = read_ticks(C.RAW_TICKS, ticker_filter={ticker},
                                     date=date, language="en")
                 same_rows = store_df.height == raw_df.height
                 r_store, _ = M.stock_day(store_df, ticker, d,
@@ -81,7 +81,7 @@ def main() -> int:
         # The store adds an Effective Time index column; everything else must match.
         f0 = S3.date_files(use_dates[0])[0]
         s_cols = set(pl.read_parquet_schema(f0[1]))
-        r_cols = set(read_ticks(C.RAW_2024, ticker_filter={f0[0]},
+        r_cols = set(read_ticks(C.RAW_TICKS, ticker_filter={f0[0]},
                                 date=use_dates[0], language="en").columns)
         extra, missing = s_cols - r_cols, r_cols - s_cols
         print(f"\nschema: store has {len(s_cols)} columns, raw {len(r_cols)}")

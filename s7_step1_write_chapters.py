@@ -1,4 +1,4 @@
-﻿"""S7 step 1 -- generate the results chapters from the stage outputs.
+"""S7 step 1 -- generate the results chapters from the stage outputs.
 
 The chapters that carry numbers are written from the JSON the analysis stages
 emit, so re-running the pipeline on more data regenerates the prose with it and
@@ -92,7 +92,7 @@ participants take them with large market orders, and closes by proposing that
 clustering measures could therefore serve as an observable proxy for
 noise-trader activity --- leaving the relationship between that activity, price
 formation and liquidity as future work. This study carries out that analysis on
-the 2024 tape, two years beyond the paper's sample, using {n_sd:,} stock-days
+the {C.YEAR} tape, three years beyond the paper's sample, using {n_sd:,} stock-days
 across {n_stocks:,} stocks and {n_days} trading days.
 
 The measures replicate. Round prices carry {pct(mbl)}\\% of large-trade volume
@@ -126,7 +126,7 @@ return.
         months = final.select(
             pl.col("date").cast(pl.Utf8).str.slice(0, 7)).n_unique()
     if n_days >= 235:
-        coverage = (f"The panel covers the whole of 2024: {n_days} trading days "
+        coverage = (f"The panel covers the whole of {C.YEAR}: {n_days} trading days "
                     f"from {d0} to {d1}.")
     else:
         coverage = (
@@ -139,6 +139,26 @@ return.
             f"below should be read as covering that sample. Nothing about the "
             f"pipeline changes with more months: the same command extends it, and "
             f"the report regenerates from whatever the panel contains.")
+
+    cal_sum = C.read_json(
+        os.path.join(C.RESULTS, "s0_inst", "calendar_summary.json"), {})
+    n_excl = len(cal_sum.get("excluded", []) or [])
+    if n_excl:
+        gap_para = (
+            f"{n_excl} date(s) are excluded at the calendar level, having arrived "
+            "either not at all or with a fraction of their usual shards --- the "
+            "signature of a transfer that stopped part-way. Treating a partial day "
+            "as a quiet one would bias every measure computed from it, so the "
+            "exclusion is made once, at the calendar, and no later stage can "
+            f"rediscover them. That leaves {cal_sum.get('n_usable', '?')} usable "
+            "trading days in the year.")
+    else:
+        gap_para = (
+            f"The {C.YEAR} feed arrived complete: every trading day is present with "
+            "a shard count in line with its month, and no date had to be excluded "
+            f"for a delivery gap. That gives {cal_sum.get('n_usable', '?')} usable "
+            "trading days in the year, of which this study uses the months listed "
+            "below.")
 
     comp_rows = ""
     if panel is not None and "tick10" in panel.columns:
@@ -158,7 +178,7 @@ return.
 
 \\subsection{{The feed}}
 
-The source is the Nikkei NEEDS \\texttt{{TICST120}} product for calendar 2024:
+The source is the Nikkei NEEDS \\texttt{{TICST120}} product for {C.YEAR}:
 one record per market event, carrying the trade if there was one and the ten best
 price levels on each side of the book as they stood afterwards. Trade direction
 is supplied by the exchange rather than inferred, which removes a source of error
@@ -166,12 +186,7 @@ that would otherwise sit underneath every result here. Daily summaries from the
 companion \\texttt{{TICSS110}} product supply trading units, shares outstanding,
 and the variables used to screen the universe.
 
-Five dates are excluded at the calendar level. Four never arrived in the
-delivered feed, and 2024-04-23 arrived with ten shards against a monthly median
-of twenty-two --- the signature of a transfer that stopped part-way. Treating a
-partial day as a quiet one would bias every measure computed from it, so the
-exclusion is made once, at the calendar, and no later stage can rediscover them.
-That leaves 240 usable trading days.
+{gap_para}
 
 \\subsection{{Two institutional details that shape everything}}
 
@@ -184,7 +199,7 @@ price-impact horizons on exactly those days.
 \\paragraph{{The exchange runs two tick grids at once.}}
 Constituents of the TOPIX 500 trade on a finer grid than everything else --- a
 regime extended from the TOPIX 100 to the whole index on 2023-06-05 and stable
-through 2024. The schedule is encoded from the exchange's published tables and
+since. The schedule is encoded from the exchange's published tables and
 cross-checked against ticks read directly off the tape.
 
 This interacts with Ohta's sample filter in a way worth stating plainly, because
@@ -269,7 +284,7 @@ every result below.
     gap_b_pp = 100 * (gap_b.get("gap") or 0)
     w("05_stylized.tex", f"""
 % =====================================================================
-\\section{{Does 2024 look like the paper's sample?}}
+\\section{{Does {C.YEAR} look like the paper's sample?}}
 \\label{{sec:stylized}}
 % =====================================================================
 
@@ -282,7 +297,7 @@ first out-of-sample evidence on these measures.
 
 \\input{{tables/t_stylized}}
 
-Table~\\ref{{tab:stylized}} puts the 2024 means beside Ohta's 2010--2022
+Table~\\ref{{tab:stylized}} puts the {C.YEAR} means beside Ohta's 2010--2022
 benchmarks. Round prices take {pct(m0_mean)}\\% of all
 continuous-session volume against his 13.5\\%, and
 {pct(mbl)}\\% of buy-initiated large-trade volume against his 14.8\\%. Under a
@@ -381,7 +396,7 @@ after the fact, this observes the inventory while it is still exposed.
 Ohta's Table 2 documents a mechanical distortion: a day that opens far from a
 round price and then barely moves can never print one, so its measure is low for
 reasons that have nothing to do with noise traders. The distortion is present in
-2024. Opening prices cluster on their own --- digit zero accounts for
+the sample. Opening prices cluster on their own --- digit zero accounts for
 about a fifth
 of openings against a tenth under uniformity --- and days opening near a round
 price show visibly higher measured clustering than days opening far from one.
@@ -389,7 +404,7 @@ Every regression below therefore carries the interaction of the opening-digit
 dummies with a low-volatility indicator, as the paper does.
 
 \\paragraph{{Verdict.}}
-2024 reproduces the paper's facts: clustering well above the uniform benchmark,
+The sample reproduces the paper's facts: clustering above the uniform benchmark,
 concentrated in large trades, stronger on finer grids and in smaller stocks, and
 carrying a positive round-price impact premium of roughly the published size. The
 measurement is sound and the rest of the study can be built on it.
@@ -749,7 +764,7 @@ where a basis point of impact is a real saving and no forecasting is required.
 The sentence at the end of Ohta (2026) proposes that price clustering can serve
 as an observable proxy for noise-trader activity, and that the relationship
 between that activity, price formation and liquidity could then be studied at
-daily or higher frequency. On the 2024 Tokyo Stock Exchange tape, it can be, and
+daily or higher frequency. On the {C.YEAR} Tokyo Stock Exchange tape, it can be, and
 it is: the measures replicate out of sample, they carry information about
 liquidity that the liquidity's own history does not, and the order book shows the
 standing round-price inventory the mechanism requires. What the measures cannot

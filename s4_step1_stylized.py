@@ -1,8 +1,8 @@
-"""S4 step 1 -- does 2024 look like the paper's 1997-2022?
+"""S4 step 1 -- does the study sample look like the paper's 1997-2022?
 
 The paper's sample ends in 2022. This is the first look at its measures two years
 later, and it is also the last chance to catch a pipeline that is quietly wrong:
-if the 2024 tape does not reproduce the paper's stylized facts, the explanation
+if the tape does not reproduce the paper's stylized facts, the explanation
 is far more likely to be a bug here than a change in the market.
 """
 from __future__ import annotations
@@ -26,7 +26,7 @@ BENCH = {"m_b_large0": 0.148, "m_s_large0": 0.143,
 def main() -> int:
     tee = C.Tee("s4_step1_stylized")
     try:
-        print("=== S4 step 1: 2024 stylized facts ===\n")
+        print(f"=== S4 step 1: {C.YEAR} stylized facts ===\n")
         df = S4.load_panel(final_only=True)
         df = S4.size_quintiles(df)
         print(f"stock-days in sample: {df.height:,}   "
@@ -34,7 +34,7 @@ def main() -> int:
 
         # ---- headline measures, with two-way clustered standard errors
         print("\nclustering measures (volume-weighted shares at the round price):")
-        print(f"{'measure':<14} {'2024 mean':>10} {'SE':>8} {'paper':>8} "
+        print(f"{'measure':<14} {'sample':>10} {'SE':>8} {'paper':>8} "
               f"{'diff':>8} {'n':>10}")
         rows, payload = [], {}
         for m in ["m0_all", "m_b_large0", "m_s_large0", "m_b_small0", "m_s_small0"]:
@@ -48,10 +48,10 @@ def main() -> int:
 
         S4.latex_table(
             os.path.join(S4.TABLES, "t_stylized.tex"),
-            "Price clustering on the Tokyo Stock Exchange in 2024, against the "
+            f"Price clustering on the Tokyo Stock Exchange in {C.YEAR}, against the "
             "published 2010--2022 benchmarks",
             "tab:stylized",
-            ["Measure", "2024 mean (\\%)", "SE", "Ohta (\\%)", "Difference", "Stock-days"],
+            ["Measure", "Sample mean (\\%)", "SE", "Ohta (\\%)", "Difference", "Stock-days"],
             rows,
             notes="Volume-weighted share of trading executing at a last price digit "
                   "of zero, by trade initiator and trade size. Large means a trade "
@@ -128,7 +128,7 @@ def main() -> int:
             ["Quintile", "$M^{0}$ (\\%)", "$M^{BLarge0}$ (\\%)", "SE", "Stock-days"],
             qrows,
             notes="Quintiles are formed once per stock on its median market "
-                  "capitalisation over 2024, so a stock does not drift between "
+                  "capitalisation over the sample, so a stock does not drift between "
                   "quintiles as its price moves. Q1 is the smallest.")
 
         # ---- round-price depth: the measure the paper's data could not support
@@ -143,8 +143,14 @@ def main() -> int:
         # ---- persistence: how much within-stock variation there is to work with
         d = df.sort(["ticker", "date"]).with_columns(
             lag=pl.col("m_b_large0").shift(1).over("ticker"),
+            prev_date=pl.col("date").shift(1).over("ticker"),
             same=pl.col("ticker") == pl.col("ticker").shift(1))
-        d = d.filter(pl.col("same")).drop_nulls(["m_b_large0", "lag"])
+        # Only consecutive trading days count: the sample may skip months.
+        d = d.with_columns(
+            gap=(pl.col("date").cast(pl.Date) - pl.col("prev_date").cast(pl.Date))
+            .dt.total_days())
+        d = d.filter(pl.col("same") & (pl.col("gap") <= 5)) \
+             .drop_nulls(["m_b_large0", "lag"])
         rho = (float(d.select(pl.corr("m_b_large0", "lag")).item())
                if d.height > 30 else float("nan"))
         print(f"\nfirst-order autocorrelation of M^BLarge0 within stock: {rho:.3f}")
