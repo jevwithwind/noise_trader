@@ -5,12 +5,12 @@ The paper's conclusion says price clustering measures can serve as an observable
 noise-trader activity (NTA), and that "it may be possible to analyze the relationship between
 noise trader activity and price formation and liquidity at a daily or shorter frequency. Such
 analysis, however, remains a task for future work." **This repository is that analysis**, on TSE
-2024 tick / 10-level limit-order-book data. Built as internship preparation (MTEC 三菱UFJ信託
+January-April 2025 tick / 10-level limit-order-book data. Built as internship preparation (MTEC 三菱UFJ信託
 投資工学研究所, starts 2026-07-31, task = a rebalancing strategy on this indicator).
 
 ## Research goal (the spine, in order)
 1. **COMPUTE** the Ohta (2026) clustering measures (M0, M^{B/S,Large/Small,0}) for the full TSE
-   tape, calendar 2024 -- two years beyond the paper's 1997-2022 sample.
+   tape for January-April 2025 -- three years beyond the paper's 1997-2022 sample.
 2. **VALIDATE** against the paper's published magnitudes and against two hand-verified anchor
    stock-days. A pipeline that does not reproduce the literature's magnitudes is not trusted.
 3. **RELATE** NTA to *price formation* and *liquidity* at daily and 30-minute frequency, using
@@ -22,12 +22,16 @@ analysis, however, remains a task for future work." **This repository is that an
    plumbing demonstration, not an alpha claim.
 5. **DOCUMENT** in a LaTeX report styled on `G:\flash_crash\thesis`.
 
+- **The study year and months are parameters** (`YEAR`/`MONTHS` in s0_common); paths, calendar,
+index membership and report prose all derive from them. The anchor stock-days stay on 2024, so
+validating the measure library never depends on which year is studied.
+
 ## Scope boundary
-IN scope: everything derived from the Nikkei NEEDS TICST120 feed for calendar 2024, plus
+IN scope: everything derived from the Nikkei NEEDS TICST120 feed for the study months, plus
 TICSS110 daily summaries (trading unit, shares outstanding) and JPX/TOPIX reference tables.
 OUT of scope: margin-trading (日証金) and ownership (有報) data -- unavailable locally. Their
 absence is *by design*: the paper's conclusion is that clustering itself measures NTA, so this
-prototype uses book-derived NTA measures only. Also OUT: causal claims. One year, no exogenous
+prototype uses book-derived NTA measures only. Also OUT: causal claims. Four months, no exogenous
 variation, no identification strategy. Every result is descriptive or predictive, and the report
 says so.
 
@@ -66,8 +70,7 @@ which reads NEEDS TICST120 zips into 95-column frames and runs the two-stage
 - **Winsorization happens in the regression stage only.** The panel on disk is raw.
 - **0.1-yen-tick days are excluded from regressions** (the paper's practice) but kept in the
   stylized-facts stage, where their elevated clustering is a result.
-- **April 2024 gap days** (2024-04-24/25/26/30 absent; 2024-04-23 truncated) are excluded at the
-  calendar level and disclosed in the report.
+- **Delivery gaps are excluded at the calendar level** and disclosed in the report. The 2025 feed arrived complete; the 2024 feed had five bad days in April, recorded in s0_common.
 
 ## Repository
 ONE local git repo rooted at `E:\MTEC\prototype`. Code + docs + report only; results, logs and
@@ -75,7 +78,7 @@ all Parquet are gitignored. The Parquet store lives OUTSIDE the repo at `D:\MTEC
 Published as private GitHub repo `jevwithwind/noise_trader` -- code and report only, never data.
 
 ## Conventions
-- Raw data (READ-ONLY source): `G:\needs\個別株式2024\TICST120\YYYYMM\HTICST120.YYYYMMDD.N.zip`
+- Raw data (READ-ONLY source): `G:\needs\個別株式{YEAR}\TICST120\YYYYMM\HTICST120.YYYYMMDD.N.zip`
   (shard numbers are unpadded -- sort numerically). Sibling `TICSS110` = daily summary.
 - Parquet store: `D:\MTEC_tick_store\individual_stock\date=YYYYMMDD\ticker=NNNN.parquet` and
   `...\stock_summary\`. ~1M small files: discovery goes through `store_manifest.parquet`,
@@ -85,6 +88,10 @@ Published as private GitHub repo `jevwithwind/noise_trader` -- code and report o
 - Outputs: `results\s<N>_<stage>\`. Versioned, never overwritten. Logs: `logs\<script>_<ts>.log`.
 - Checkpoints: atomic JSON (write `.tmp`, then `os.replace`).
 - Every writer calls `write_guard(path)` before touching disk.
+- Edit files with Python or an editor, never with a PowerShell `Get-Content`/`Set-Content`
+  round-trip. Windows PowerShell 5.1 decodes UTF-8 as the ANSI code page, so any file containing
+  Japanese -- the raw-data paths, several comments, this file -- comes back mojibake'd, and the
+  string replacements you intended silently fail to match.
 - The measure library is ONE module (`measures.py`) used unchanged by the pilot and the full
   pass, so validation on anchors is validation of production code.
 

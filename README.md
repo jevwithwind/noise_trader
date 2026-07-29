@@ -11,8 +11,8 @@ that clustering measures can therefore serve as an *observable proxy for noise-t
 and that relating that activity to price formation and liquidity "at a daily or shorter
 frequency" remains a task for future work.
 
-**This repository is that analysis**, on the full Tokyo Stock Exchange tape for calendar 2024 —
-two years beyond the paper's 1997–2022 sample.
+**This repository is that analysis**, on the Tokyo Stock Exchange tape for January–April 2025 —
+three years beyond the paper's 1997–2022 sample.
 
 ## What it does
 
@@ -50,7 +50,7 @@ cd E:\MTEC\prototype
 
 python s0_step0_gate.py           # environment gate
 python s0_step1_deps.py           # estimator backends vs a known-truth panel
-python s0_step2_raw_inventory.py  # freeze the 2024 trading calendar
+python s0_step2_raw_inventory.py  # freeze the trading calendar
 python s0_step3_yobine_tables.py  # tick-size reference
 python s0_step4_report.py
 
@@ -63,7 +63,7 @@ passed. Stages 2 and 3 are long jobs and are checkpointed, so an interrupted run
 ## Data
 
 Source is the Nikkei NEEDS `TICST120` feed (tick data with the ten best quotes per side) for
-2024, read strictly read-only from `G:\needs`, plus `TICSS110` daily summaries for trading units
+2025, read strictly read-only from `G:\needs`, plus `TICSS110` daily summaries for trading units
 and shares outstanding. **No data — raw or derived — is committed to this repository or leaves
 the machine.** The licence belongs to the university, not to this project.
 
@@ -79,7 +79,7 @@ order of what would survive contact with a different specification:
 | Digit arithmetic | `measures.py` (`digit_expr`, `observed_grid`, `resolve_tick10`) | Integer-only, and the resolution rule handles index-membership drift. Getting this wrong reads as 50% or 100% clustering, not as noise. |
 | Liquidity measures | `measures.py` (`spread_impact`) | Effective spread, impact at several horizons, realized spread, quote depth — Ohta's definitions, with session-end truncation handled per horizon. |
 | Ladder inference | `measures.py` (`ladder_lc`) + `report/appendices/B_ladder.tex` | Submission and cancellation volume from book deltas. Validated against the paper's published magnitudes. |
-| Ingest configuration | `s2_step1_ingest.py` | The default full-frame ingest runs out of memory on 2024 message rates. The header comment explains what works and why the obvious fix makes it worse. |
+| Ingest configuration | `s2_step1_ingest.py` | The default full-frame ingest runs out of memory at current message rates. The header comment explains what works and why the obvious fix makes it worse. |
 | Panel inference | `s4_common.py`, `s5_common.py` | Two-way clustered means and fixed-effects fits, with guards that refuse degenerate panels instead of reporting a zero standard error. |
 
 **Where the real task will differ.** The rebalancing brief could mean execution-cost reduction,
@@ -95,11 +95,11 @@ itself the proxy. With those series the same panel becomes a joint test of proxy
 
 ## Caveats worth reading before the results
 
-- One calendar year. Every result is descriptive or predictive; none is causal.
+- Four months of one market. Every result is descriptive or predictive; none is causal.
 - Margin-trading and ownership data (Ohta's direct noise-trader proxies) are unavailable here.
   Their absence is deliberate: the paper's own conclusion is that clustering *is* the proxy, so
   this prototype uses book-derived measures only.
-- Ohta's tick filter excludes the 0.5-yen grid, which in 2024 covers the 1,000–3,000 yen band
+- Ohta's tick filter excludes the 0.5-yen grid, which covers the 1,000–3,000 yen band
   for TOPIX500 constituents. The regression sample is tilted accordingly, and the report
   reports the composition rather than pooling incompatible grids.
-- 2024-04-23 through 2024-04-30 are partly missing from the delivered feed and are excluded.
+- The study covers four months, not a full year; the report states its own coverage.

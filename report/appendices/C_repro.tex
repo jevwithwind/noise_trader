@@ -42,7 +42,7 @@ than proceeding to results that would be built on a broken measurement.
 The suite covers the exchange tick-size bands and their boundary conventions
 (each case a tick observed on the tape rather than an invented one); the integer
 digit arithmetic, including a test that records how the naive floating-point
-version fails; the session-close change part-way through 2024; the trade-signing
+version fails; the session-close change of 2024-11-05; the trade-signing
 map including the stop-quote variants that decode to an unrecognised label; the
 write guard that keeps the pipeline out of the read-only source tree; the
 tick-resolution rule, with the three real stock-days that motivated it; and the
@@ -64,7 +64,7 @@ because every observed price then lands on a multiple of the assumed tick.
 
 \paragraph{Ingest had to be restructured.}
 The reader library's default ingest assembles a whole trading day in memory
-before writing. At 2024 message rates a single day of the full market exceeds
+before writing. At current message rates a single day of the full market exceeds
 the memory of the machine used here, and the ingest fails. The library's
 streaming path --- which writes each part of a day as it is read and then
 discards it --- engages for requests that name a bounded set of stocks, so the
@@ -83,7 +83,7 @@ is the one that leaves the threshold alone and keeps each request inside it.
 
 \subsection{Data}
 
-Source is the Nikkei NEEDS \texttt{TICST120} product for 2024 --- tick data with
+Source is the Nikkei NEEDS \texttt{TICST120} product --- tick data with
 the ten best quotes per side --- read strictly read-only, together with the
 \texttt{TICSS110} daily summaries for trading units, shares outstanding and the
 universe screen. No raw or derived data is included in the code repository or
