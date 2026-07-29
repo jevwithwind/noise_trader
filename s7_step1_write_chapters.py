@@ -111,7 +111,7 @@ magnitudes without having been calibrated to them.
 
 On the open question --- whether noise-trader activity marks a more liquid market
 or a more expensive one --- the panel gives an answer, reported with the caution
-a single year deserves. A placebo that rebuilds the measure on each of the other
+a four-month sample deserves. A placebo that rebuilds the measure on each of the other
 nine last digits separates the round-price result from a mechanical artefact of
 how the measure is constructed. A strategy demonstration is included to exercise
 the machinery end to end; its informative output is the cost accounting, not the
@@ -455,6 +455,25 @@ measurement is sound and the rest of the study can be built on it.
         "negative, favouring the first reading: days following heavy round-price "
         "trading are days when trading costs less")
 
+    _sig = [x for x in (es_t, ip_t) if x is not None and abs(x) > 1.96]
+    if _sig:
+        liq_verdict = (
+            "Clustering carries information about next-day liquidity that the "
+            "outcome's own history does not, in a specification demanding enough "
+            "to absorb every stock-level and market-wide effect. The association "
+            "is descriptive: no experiment, and no claim that intervening on "
+            "clustering would move spreads.")
+    else:
+        liq_verdict = (
+            "Neither pre-specified outcome shows a coefficient on lagged "
+            "clustering distinguishable from zero once the outcome's own lag and "
+            "the control set are included. Read carefully, that is a statement "
+            "about power as much as about the world: stock and day effects absorb "
+            "most of the variation a persistent measure like this one has, and the "
+            "sample is a single quarter. The honest summary is that clustering "
+            "does not add detectable predictive content here, not that it has "
+            "none.")
+
     w("06_liquidity.tex", f"""
 % =====================================================================
 \\section{{Clustering and next-day liquidity}}
@@ -497,8 +516,9 @@ Section~\\ref{{sec:intro}} set out two incompatible predictions. On the
 \\textcite{{Kyle1985}} reading, more noise trading means a deeper market and
 cheaper trading. On the stale-order reading, clustering marks liquidity supplied
 by participants about to be picked off, and trading should get more expensive.
-The sign here is {kyle_or_stale}. That is one year of one market, and it is
-reported as an association rather than a mechanism.
+The sign here is {kyle_or_stale}. That is one sample of one market, and it is
+reported as an association rather than a mechanism --- and where the coefficient
+is not distinguishable from zero, as a direction the data do not resolve.
 
 \\subsection{{Which measure carries the information}}
 
@@ -513,10 +533,7 @@ the placebo in Section~\\ref{{sec:robust}}, but it uses the paper's own internal
 contrast.
 
 \\paragraph{{Verdict.}}
-Clustering carries information about next-day liquidity that the outcome's own
-history does not, in a specification demanding enough to absorb every stock-level
-and market-wide effect. The association is descriptive: one year, no experiment,
-and no claim that intervening on clustering would move spreads.
+{liq_verdict}
 """)
 
     # ------------------------------------------------------------ book
@@ -703,7 +720,7 @@ Section~\\ref{{sec:stylized}} point to, and precisely not a standalone alpha.
 
 \\paragraph{{Verdict.}}
 The pipeline runs end to end and the economics are transparent. This is not
-evidence of a profitable strategy: one year, one market, no out-of-sample period,
+evidence of a profitable strategy: four months, one market, no out-of-sample period,
 and closing prices carrying no adjustment for splits or dividends --- which is why
 stock-days with moves beyond 25\\% are dropped rather than believed.
 """)
@@ -782,7 +799,7 @@ comparison was set up before the numbers were computed.
 \\subsection{{What it is not}}
 
 \\paragraph{{Not causal.}}
-One year, no experiment, no instrument. Everything reported is a descriptive
+Four months, no experiment, no instrument. Everything reported is a descriptive
 association or a predictive relationship. Clustering and liquidity are plausibly
 both driven by things this study does not observe, and nothing here identifies a
 direction of causation.
