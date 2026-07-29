@@ -122,11 +122,35 @@ def opening_digit_dummies(df: pl.DataFrame) -> list[str]:
 def fit(df: pl.DataFrame, y: str, xs: list[str], *, entity="ticker", time="date",
         backend: str = "pyfixest") -> dict:
     """Two-way fixed effects with standard errors clustered on both margins."""
-    cols = [y] + xs + [entity, time]
+    # Dedupe while preserving order: an outcome's own lag can also appear in the
+    # control set, and polars rejects a duplicated projection outright.
+    def uniq(seq):
+        seen, out = set(), []
+        for c in seq:
+            if c not in seen:
+                seen.add(c)
+                out.append(c)
+        return out
+
+    xs = uniq([c for c in xs if c != y])
+    cols = uniq([y] + xs + [entity, time])
     d = df.select([c for c in cols if c in df.columns]).drop_nulls()
     have = [x for x in xs if x in d.columns]
     if d.height < 200 or not have:
         return {"n": d.height, "coef": {}, "se": {}, "t": {}, "error": "insufficient data"}
+
+    # Two-way fixed effects need repeated observations on both margins. If every
+    # entity appears once, all of them are singletons, there is no within
+    # variation to identify anything, and the demeaning routine crashes rather
+    # than returning. Refuse the fit rather than let it take the process down.
+    n_time = d[time].n_unique()
+    n_ent = d[entity].n_unique()
+    ent_sizes = d.group_by(entity).len()
+    n_multi = int((ent_sizes["len"] > 1).sum())
+    if n_time < 5 or n_ent < 5 or n_multi < 20:
+        return {"n": d.height, "coef": {}, "se": {}, "t": {},
+                "error": f"degenerate panel: {n_time} periods, {n_ent} entities, "
+                         f"{n_multi} with repeated observations"}
 
     pdf = d.to_pandas()
     pdf[entity] = pdf[entity].astype(str)

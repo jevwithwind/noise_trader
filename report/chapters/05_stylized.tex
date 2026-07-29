@@ -1,0 +1,127 @@
+
+% =====================================================================
+\section{Does 2024 look like the paper's sample?}
+\label{sec:stylized}
+% =====================================================================
+
+Nothing below this point is worth reading if the measurement is wrong, and the
+cheapest way to find out is to check whether a year the paper never saw
+reproduces the facts it established. This section is that check. It is also the
+first out-of-sample evidence on these measures.
+
+\subsection{The headline measures}
+
+\input{tables/t_stylized}
+
+Table~\ref{tab:stylized} puts the 2024 means beside Ohta's 2010--2022
+benchmarks. Round prices take 14.07\% of all
+continuous-session volume against his 13.5\%, and
+16.17\% of buy-initiated large-trade volume against his 14.8\%. Under a
+uniform digit distribution every one of these would be 10\%. Clustering is
+alive and well on the Tokyo Stock Exchange two years past the end of his sample.
+
+\paragraph{The ordering the mechanism predicts.}
+The paper's account is specifically about \emph{large} orders taking stale
+round-price limit orders, so the large-trade measure should exceed the
+small-trade one. It does, by 5.74 percentage
+points on the buy side, significant at the 1\% level. The small-trade measures sit
+at 10.43\% and 10.30\%, barely
+above the uniform benchmark. Whatever produces clustering, it is not something
+that happens to trades of one unit.
+
+\subsection{The digit distribution}
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.85\linewidth]{f_digits.pdf}
+\caption{Volume-weighted share of trading at each last price digit, by tick
+regime. The dashed line is the 10\% a uniform distribution would give.}
+\label{fig:digits}
+\end{figure}
+
+Figure~\ref{fig:digits} is the whole phenomenon in one picture. Digit zero
+stands well above the uniform line; digit five stands slightly above it, which is
+what one expects if half-way points attract some of the same behaviour; and the
+remaining seven digits sit flat. That shape is itself a diagnostic --- a
+measurement error in the digit arithmetic would not produce a clean spike at zero
+and a smaller one at five, it would produce something lumpy.
+
+\subsection{Finer grids, smaller stocks}
+
+\input{tables/t_tick}
+\input{tables/t_size}
+
+\textcite{Harris1991Clustering} predicts more clustering on finer grids, and
+the 0.1-yen days deliver it: --\% against
+13.94\% on the 1-yen grid. The mechanism is not mysterious.
+At a price around 900 yen a 0.1-yen tick is about one basis point, fine enough
+that order placement collapses back onto whole-yen prices --- and a whole yen is
+the roundest number available. These days are kept here, where they are a
+result, and excluded from the regressions, where the paper excludes them.
+
+Table~\ref{tab:size} shows clustering falling across size quintiles, the
+cross-sectional gradient Ohta reports and Harris predicts. It also explains why
+the strategy demonstration in Section~\ref{sec:strategy} neutralises size
+before sorting: an unneutralised clustering sort is substantially a small-cap
+bet.
+
+\subsection{The impact premium}
+
+\input{tables/t_dimp}
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.85\linewidth]{f_dimp.pdf}
+\caption{Round-price price-impact premium in large trades, with 95\% confidence
+intervals from standard errors clustered by stock and by day.}
+\label{fig:dimp}
+\end{figure}
+
+This is the paper's second result and the one that makes clustering matter for
+execution. A trade at a round price is executing against an order whose price has
+gone stale, so the midquote should move further afterwards. At the one-minute
+horizon the premium is 0.43 basis points on the buy side and
+1.28 on the sell side, against Ohta's 1.26 and 1.12.
+
+The effective-spread decomposition closes as an identity, which is a check on the
+implementation rather than a finding: impact plus realized spread equals the
+effective spread to three decimal places at every horizon tested.
+
+\subsection{Standing round-price depth}
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.85\linewidth]{f_rdepth.pdf}
+\caption{Binned means of the round-price share of visible ask depth against
+measured clustering in buy-initiated large trades.}
+\label{fig:rdepth}
+\end{figure}
+
+The measure the paper's data could not support says the same thing from the other
+side. 14.35\% of visible ten-level ask depth sits at round prices against a
+uniform benchmark of 10\%, and
+13.21\% on the bid.
+Figure~\ref{fig:rdepth} relates it to the executed measure: stock-days where
+more of the standing book sits at round prices are stock-days where more
+round-price volume executes. Where the clustering measures observe the mechanism
+after the fact, this observes the inventory while it is still exposed.
+
+\subsection{The contamination the paper warns about}
+
+\input{tables/t_opening}
+
+Ohta's Table 2 documents a mechanical distortion: a day that opens far from a
+round price and then barely moves can never print one, so its measure is low for
+reasons that have nothing to do with noise traders. The distortion is present in
+2024. Opening prices cluster on their own --- digit zero accounts for
+about a fifth
+of openings against a tenth under uniformity --- and days opening near a round
+price show visibly higher measured clustering than days opening far from one.
+Every regression below therefore carries the interaction of the opening-digit
+dummies with a low-volatility indicator, as the paper does.
+
+\paragraph{Verdict.}
+2024 reproduces the paper's facts: clustering well above the uniform benchmark,
+concentrated in large trades, stronger on finer grids and in smaller stocks, and
+carrying a positive round-price impact premium of roughly the published size. The
+measurement is sound and the rest of the study can be built on it.

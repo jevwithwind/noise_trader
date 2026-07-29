@@ -1,0 +1,17 @@
+\begin{table}[htbp]
+\centering
+\caption{Next-day returns to a size-neutralised clustering signal}
+\label{tab:strategy}
+\small
+\begin{threeparttable}
+\begin{tabular}{@{}lrrrrr@{}}
+\toprule
+Portfolio & Return (bp/day) & SE & $t$ & Names & Eff. half-spread (bp) \\
+\midrule
+\bottomrule
+\end{tabular}
+\begin{tablenotes}[flushleft]\footnotesize
+\item The signal is the daily cross-sectional residual of $M^{BLarge0}$ on the opening-digit contamination controls, relative tick size, log market capitalisation, lagged log turnover, lagged volatility, lagged spread and the overnight return, standardised within the day. Portfolios are equally weighted and rebalanced daily. Costs charge the measured effective half-spread on both legs of the observed turnover. Stock-days with an absolute move above 25\% are dropped, since closing prices here carry no adjustment for splits or dividends. This is a demonstration that the pipeline runs end to end, not evidence of a profitable strategy: one year, one market, and no out-of-sample period.
+\end{tablenotes}
+\end{threeparttable}
+\end{table}

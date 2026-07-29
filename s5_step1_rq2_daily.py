@@ -60,10 +60,15 @@ def main() -> int:
             if y not in df.columns:
                 continue
             yl = f"{y}_l1"
+            # The lagged spread is a control for every outcome, but for the spread
+            # itself it is the lagged dependent variable. Dropping it from the
+            # control set there keeps the three specifications genuinely distinct
+            # rather than making two of them the same regression.
+            ctrl = [c for c in controls if c != yl]
             specs = {
-                "contemporaneous": [x] + controls,
-                "predictive": [xl] + controls,
-                "dynamic": [xl, yl] + controls,
+                "contemporaneous": [x] + ctrl,
+                "predictive": [xl] + ctrl,
+                "dynamic": [xl, yl] + ctrl,
             }
             print(f"--- {label} ---")
             row = [label + ("" if primary else "$^{\\dagger}$")]

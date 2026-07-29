@@ -101,21 +101,28 @@ def main() -> int:
         rows = []
         for q in range(1, 6):
             g = by_q.filter(pl.col("q") == q)
-            r = g["r"].to_numpy()
-            mu = r.mean() * 1e4
-            se = r.std(ddof=1) / np.sqrt(len(r)) * 1e4
-            print(f"  Q{q}: {mu:+7.2f} bp/day  (t={mu/se:5.2f})  "
+            r = g["r"].drop_nulls().to_numpy()
+            if len(r) < 3:
+                print(f"  Q{q}: only {len(r)} day(s); skipped")
+                continue
+            mu = float(r.mean()) * 1e4
+            se = float(r.std(ddof=1)) / np.sqrt(len(r)) * 1e4
+            t = mu / se if se > 0 else float("nan")
+            print(f"  Q{q}: {mu:+7.2f} bp/day  (t={t:5.2f})  "
                   f"avg names {g['n'].mean():.0f}  eff. half-spread "
                   f"{g['hs'].mean():.2f} bp")
-            rows.append([f"Q{q}", f"{mu:+.2f}", f"({se:.2f})", f"{mu/se:.2f}",
+            rows.append([f"Q{q}", f"{mu:+.2f}", f"({se:.2f})", f"{t:.2f}",
                          f"{g['n'].mean():.0f}", f"{g['hs'].mean():.2f}"])
 
         wide = by_q.pivot(values="r", index="date", on="q").sort("date")
         qcols = [c for c in wide.columns if c != "date"]
-        if "5" in qcols and "1" in qcols:
-            ls = (wide["5"] - wide["1"]).to_numpy()
+        if "5" in qcols and "1" in qcols and wide.height >= 5:
+            ls = (wide["5"] - wide["1"]).to_numpy().astype(float)
             ls = ls[np.isfinite(ls)]
-            mu, sd = ls.mean(), ls.std(ddof=1)
+        else:
+            ls = np.array([])
+        if len(ls) >= 5:
+            mu, sd = float(ls.mean()), float(ls.std(ddof=1))
             se = sd / np.sqrt(len(ls))
             ann = mu * 245 * 100
             sharpe = mu / sd * np.sqrt(245) if sd > 0 else float("nan")

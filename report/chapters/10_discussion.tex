@@ -1,0 +1,79 @@
+
+% =====================================================================
+\section{Discussion}
+\label{sec:discussion}
+% =====================================================================
+
+\subsection{What was found}
+
+Ohta's measures survive out of sample. On a year his study did not cover, round
+prices take 16.17\% of large-trade volume against 10.43\% of
+small-trade volume, the ordering his mechanism predicts holds firmly, finer grids
+and smaller stocks cluster more, and trades at round prices carry a positive
+price-impact premium of roughly the size he reports. None of this was tuned; the
+comparison was set up before the numbers were computed.
+
+On the question he leaves open, clustering carries information about next-day
+liquidity beyond what that liquidity's own history already contains, and the
+relationship persists into within-day variation where no slow-moving stock
+characteristic can account for it. A placebo across the other nine digits
+separates the result from an artefact of the measure's construction.
+
+The two book-based measures behave as the mechanism implies. Round prices hold a
+disproportionate share of standing visible depth --- observing the stale
+inventory directly rather than after it has been taken --- and the round-price
+share of submitted limit orders and their cancellation ratio enter with the signs
+the hypothesis predicts.
+
+\subsection{What it is not}
+
+\paragraph{Not causal.}
+One year, no experiment, no instrument. Everything reported is a descriptive
+association or a predictive relationship. Clustering and liquidity are plausibly
+both driven by things this study does not observe, and nothing here identifies a
+direction of causation.
+
+\paragraph{Not Ohta's identification.}
+He identifies noise traders with margin balances and ownership shares. Those are
+unavailable here, so this study leans entirely on the claim his conclusion
+advances --- that the clustering measures are themselves the proxy. That makes
+the exercise a test of his proposal rather than an independent confirmation of
+it, and a genuine replication would need the ownership data.
+
+\paragraph{A narrow window on the book.}
+Ten visible levels sound like a lot and are not. On the stock-days examined in
+detail, 95--98\% of quoted volume sits beyond them. The inferred order flow
+describes the neighbourhood of the best quote, which is where execution happens,
+but it is silent about the far book --- and the far book is exactly where Ohta
+argues the interesting stale orders sit.
+
+\paragraph{A sample shaped by a filter.}
+Excluding non-power-of-ten tick sizes removes the 0.5-yen grid, and with it much
+of the mid-priced TOPIX 500 population. This follows from the paper's filter
+rather than from a choice made here, but it means the regression sample is not
+the market.
+
+\subsection{What would come next}
+
+Three things, in order of value. Obtaining the margin and ownership data would
+convert this from a test of the proxy into a joint test of the proxy and the
+mechanism. Extending to several years would allow the year fixed effects and
+sub-period splits that would show whether the relationship is stable, and would
+let the strategy demonstration have a genuine out-of-sample period. And the
+execution application is more promising than the alpha one: the impact premium at
+round prices is a statement about what an order pays, which points at scheduling
+and price-level selection within a rebalance that is happening regardless ---
+where a basis point of impact is a real saving and no forecasting is required.
+
+\subsection{Conclusion}
+
+The sentence at the end of Ohta (2026) proposes that price clustering can serve
+as an observable proxy for noise-trader activity, and that the relationship
+between that activity, price formation and liquidity could then be studied at
+daily or higher frequency. On the 2024 Tokyo Stock Exchange tape, it can be, and
+it is: the measures replicate out of sample, they carry information about
+liquidity that the liquidity's own history does not, and the order book shows the
+standing round-price inventory the mechanism requires. What the measures cannot
+yet do is support a standalone trading rule, for the ordinary reason that the
+costs exceed the signal --- which is itself the most useful thing this prototype
+has to say about how such an indicator should be used.

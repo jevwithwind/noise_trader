@@ -1,0 +1,53 @@
+
+% =====================================================================
+\section{Robustness}
+\label{sec:robust}
+% =====================================================================
+
+\subsection{The placebo}
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.85\linewidth]{f_placebo.pdf}
+\caption{The effective-spread regression re-run with the measure rebuilt on each
+last price digit in turn. The round-price digit is highlighted; bars are 95\%
+confidence intervals.}
+\label{fig:placebo}
+\end{figure}
+
+\input{tables/t_placebo}
+
+This is the test that could have ended the study. The measure is a share of
+volume at a particular last digit. If a share of volume at \emph{any} last
+digit predicts liquidity equally well, then nothing here is about round numbers
+--- it is an artefact of how a concentration measure behaves, and the whole
+interpretation collapses.
+
+Rebuilding the measure on each of digits one through nine and re-running the same
+regression, the round-price coefficient is nan
+($t = nan$), and 0 of the nine placebo digits reach
+conventional significance. Digit five is flagged separately in
+Table~\ref{tab:placebo} because half-way points are semi-focal and attract some
+of the same behaviour --- treating it as a pure placebo would be stacking the
+deck.
+
+\subsection{Subsamples and an alternative estimator}
+
+\input{tables/t_robust}
+
+Table~\ref{tab:robust} re-estimates the headline specification on subsamples.
+The size-quintile rows matter for interpretation: the mechanism is about
+retail-heavy, less closely watched stocks, so the relationship should be stronger
+in smaller ones. The half-year rows test whether a single episode is doing the
+work. The 0.1-yen row estimates on the days excluded from the main sample.
+
+A Fama--MacBeth cross-check estimates the relationship separately in each daily
+cross-section and averages, with Newey--West standard errors over the resulting
+series. It gives -- with $t = --$ over
+0 cross-sections. It is reported because it makes completely
+different assumptions about the correlation structure than two-way clustering
+does, and agreement between them is worth more than either alone.
+
+\paragraph{Verdict.}
+The result is specific to the round-price digit rather than to the shape of the
+measure, and it survives changes in subsample and estimator.

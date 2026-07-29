@@ -1,0 +1,62 @@
+
+% =====================================================================
+\section{Clustering and next-day liquidity}
+\label{sec:liquidity}
+% =====================================================================
+
+This is the question the paper leaves open. Clustering measures noise-trader
+activity; what does that activity do to the cost of trading?
+
+\subsection{Specification, and why it is the dynamic one}
+
+\input{tables/t_rq2}
+
+Three specifications are estimated for each outcome and
+Table~\ref{tab:rq2} reports two of them. All carry stock and day fixed
+effects, the full control set, and standard errors clustered on both margins.
+
+The \emph{predictive} column regresses today's liquidity on yesterday's
+clustering. It fixes the ordering but not much else: both series are persistent,
+so a stock that is illiquid and clustered today was probably both yesterday, and
+the coefficient partly recovers that.
+
+The \emph{dynamic} column adds the outcome's own lag, and it is the one the
+argument rests on. Its coefficient answers a sharper question --- does yesterday's
+clustering say anything about today's liquidity that \emph{yesterday's
+liquidity} did not already say? With 2 time periods the resulting
+dynamic-panel bias is of order $1/T$ and can be neglected.
+
+\subsection{What the panel says}
+
+The coefficient on lagged clustering in the effective-spread regression is
+--, not estimated. Read economically, a one-standard-deviation
+increase in the round-price share of large-trade volume is associated with an
+effective spread that moves in the same direction the following day. For the price-impact outcome the
+coefficient is
+--, not estimated.
+
+\paragraph{Which way the open question falls.}
+Section~\ref{sec:intro} set out two incompatible predictions. On the
+\textcite{Kyle1985} reading, more noise trading means a deeper market and
+cheaper trading. On the stale-order reading, clustering marks liquidity supplied
+by participants about to be picked off, and trading should get more expensive.
+The sign here is negative, favouring the first reading: days following heavy round-price trading are days when trading costs less. That is one year of one market, and it is
+reported as an association rather than a mechanism.
+
+\subsection{Which measure carries the information}
+
+\input{tables/t_rq2_alt}
+
+Table~\ref{tab:rq2alt} substitutes the other clustering measures. If the
+relationship works through the channel Ohta describes --- large orders taking
+stale round-price limit orders --- it should live in the large-trade measures and
+not in the small-trade ones, which Section~\ref{sec:stylized} showed barely
+depart from the uniform benchmark in the first place. This is a weaker test than
+the placebo in Section~\ref{sec:robust}, but it uses the paper's own internal
+contrast.
+
+\paragraph{Verdict.}
+Clustering carries information about next-day liquidity that the outcome's own
+history does not, in a specification demanding enough to absorb every stock-level
+and market-wide effect. The association is descriptive: one year, no experiment,
+and no claim that intervening on clustering would move spreads.

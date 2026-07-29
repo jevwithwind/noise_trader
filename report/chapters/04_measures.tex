@@ -1,0 +1,128 @@
+% =====================================================================
+\section{Measures, and the validation they had to pass}
+\label{sec:measures}
+% =====================================================================
+
+Every measure is defined in full in Appendix~\ref{app:variables}. This section
+gives the ones the argument depends on, and then reports the checks the
+measurement layer had to survive before any result was computed from it.
+
+\subsection{Clustering}
+
+For tick size $\tau$, the \emph{last price digit} of a trade at price $p$ is
+$(p \bmod 10\tau)/\tau$, and a \emph{round price} is one whose digit is zero.
+Under a uniform digit distribution each digit would carry 10\% of volume, so
+10\% is the benchmark against which every number in this study is read.
+
+\begin{equation}
+M^{kLarge0}_{i,t} \;=\;
+\frac{\text{volume at a round price, large trades initiated on side } k}
+     {\text{volume in large trades initiated on side } k},
+\qquad k \in \{B, S\}
+\end{equation}
+
+\emph{Large} means a trade of more than one trading unit and \emph{small} exactly
+one unit, following the paper. Trades are signed by the exchange's own execution
+type rather than by a classification rule, so the buy/sell split carries no
+inference error.
+
+\paragraph{The arithmetic is integer.}
+Prices are converted once to tenths of a yen and every digit is computed with
+integer division and remainder. This is not fastidiousness. On the 0.1-yen grid,
+where clustering is strongest, the floating-point version of the same expression
+silently returns the wrong digit, and it does so on exactly the stock-days that
+matter most.
+
+\subsection{Liquidity, as the paper defines it}
+
+The brief for this study specified the paper's liquidity measures rather than a
+volume proxy, and the distinction matters: volume is an activity measure, whereas
+what follows are all prices paid.
+
+The \emph{effective half-spread} is the volume-weighted mean of $q(p-m)/m$ in
+basis points, where $m$ is the midquote immediately before the trade and $q$ is
+$+1$ for buy-initiated and $-1$ for sell-initiated trades. The \emph{price
+impact} at horizon $\Delta$ is the volume-weighted mean of
+$q(m_{t+\Delta}-m_t)/m_t$, and the \emph{realized spread} is the difference
+between the two. That difference is an identity, and Section~\ref{sec:stylized}
+reports it closing to three decimal places --- which is a check on the
+implementation, not a finding.
+
+Two details in the impact calculation do real work. A trade's horizon must end
+inside its own trading session: without that restriction, a trade at 11:29 would
+have its ``one minute later'' midquote taken from after the lunch break, which
+manufactures a zero. And the round-price premium
+$\Delta\mathit{Imp}^{kLarge} = \mathit{Imp}^{kLarge0} - \mathit{Imp}^{kLarge1}$
+requires a stock-day to contain at least five large trades of each kind; below
+that the difference of two noisy cell means is not worth reporting.
+
+\subsection{Two measures from the visible book}
+
+\paragraph{Round-price resting depth.}
+The clustering measures see a round-price order only once it has been executed
+against. The feed publishes ten price levels per side after every event, so the
+standing inventory is directly observable:
+
+\begin{equation}
+\mathit{RDepth}^{\mathrm{ask}0}_{i,t} \;=\;
+\text{time-averaged } \frac{\sum_{\ell \le 10} v^{\mathrm{ask}}_{\ell}
+\mathbb{1}[\text{digit}(p^{\mathrm{ask}}_{\ell}) = 0]}
+{\sum_{\ell \le 10} v^{\mathrm{ask}}_{\ell}}
+\end{equation}
+
+sampled on a one-minute grid over snapshots showing an ordinary two-sided quote,
+so that a stock quoting ten thousand times a second does not dominate its own
+daily average. Under a uniform digit distribution this would be 10\%. It is the
+closest thing in this study to observing the mechanism directly: stale
+round-price orders while they are still exposed, rather than after they have been
+taken.
+
+\paragraph{Limit-order submission and cancellation.}
+Ohta's explanatory variables are the round-price shares of submitted and
+cancelled limit-order volume. Those are inferred here from how the displayed
+ladder changes between consecutive snapshots, using the accounting identity that
+resting volume at a price can only change by execution, cancellation or
+submission. The algorithm, the two rules that make it correct, and what it cannot
+see are set out in Appendix~\ref{app:ladder}.
+
+\subsection{What the measurement layer had to prove}
+
+The measure library is a single module, and the full panel build calls it
+unchanged. Validating it is therefore validating production code rather than a
+look-alike written for the occasion. It had to pass four things.
+
+\paragraph{Two hand-verified stock-days, to the second decimal.}
+Two stock-days were computed independently in advance and used as tripwires: one
+on the 1-yen grid, one on the 0.1-yen grid where the digit arithmetic is fragile.
+All ten clustering cells reproduce to within 0.005 percentage points, and both
+tick sizes were recovered identically by the coded exchange schedule and by
+inference from the tape.
+
+\paragraph{A negative control.}
+Excluding the opening and closing auctions is not cosmetic. Letting them back in
+moves the daily measure by $-2.91$ and $+8.73$ percentage points on the two
+anchor days: the closing call is a single enormous volume-weighted print, and its
+price is not set by an individual limit order the way continuous-session prices
+are. A pipeline that silently included it would produce measures that looked
+plausible and were wrong.
+
+\paragraph{A hand-built order book.}
+The ladder inference is checked against a six-snapshot tape whose order flow is
+known exactly, constructed so that each of the three standard failure modes
+produces a visibly wrong answer --- mistaking an execution for a cancellation,
+inventing flow when the ladder shifts a level, and counting depth that entered
+from beyond the visible window. Appendix~\ref{app:ladder} gives the construction.
+
+\paragraph{Magnitudes nobody tuned for.}
+The strongest check is external. Ohta reports a mean round-price share of
+submitted sell limit orders of 0.106 and a mean cancellation ratio of 0.806 over
+2010--2022. Run on 2024 stock-days, this implementation returns 0.103--0.155 and
+0.58--0.83. Nothing in the algorithm was calibrated against those numbers and
+they come from a different sample period, so the agreement is evidence that the
+inference recovers the quantity the paper measures.
+
+\paragraph{Verdict.}
+The measurement layer reproduces two independently computed stock-days exactly,
+satisfies the identities it should satisfy, orders itself correctly across the
+liquidity spectrum, and lands on published magnitudes it was never shown. The
+results that follow rest on it.

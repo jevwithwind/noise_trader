@@ -1,0 +1,49 @@
+
+% =====================================================================
+\section{A strategy demonstration}
+\label{sec:strategy}
+% =====================================================================
+
+The brief behind this study is to build a rebalancing strategy on this indicator,
+and the distance between ``the indicator predicts liquidity'' and ``here is a
+tradable rule'' is exactly where such projects fail. So the machinery is built
+and run: form a signal from information available at the time, sort on it,
+rebalance, and charge realistic costs.
+
+\input{tables/t_strategy}
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.85\linewidth]{f_strategy.pdf}
+\caption{Cumulative return to the long--short quintile portfolio, gross and net
+of estimated trading costs.}
+\label{fig:strategy}
+\end{figure}
+
+The signal is the daily cross-sectional residual of the clustering measure on
+everything that mechanically drives it --- the opening-digit contamination,
+relative tick size, size, turnover, volatility and spread --- standardised within
+the day. Residualising is essential rather than cosmetic: clustering is strongest
+in small, retail-heavy names, so an unneutralised sort is largely a small-cap bet
+wearing a microstructure costume.
+
+\paragraph{The cost line is the finding.}
+The long--short portfolio turns over
+0.0\% of each leg per day. At the
+measured effective half-spread of -- basis
+points, that costs -- basis points a day against
+a gross return of --, leaving
+--. A signal that has to be refreshed daily in
+names this wide pays its gross return away several times over.
+
+That is the useful lesson for the problem this prototype was built for. If the
+indicator is to be used at all, it has to be used either at a horizon long enough
+to amortise the spread, or inside a rebalance that was going to happen anyway ---
+which is precisely the execution-scheduling application the impact results in
+Section~\ref{sec:stylized} point to, and precisely not a standalone alpha.
+
+\paragraph{Verdict.}
+The pipeline runs end to end and the economics are transparent. This is not
+evidence of a profitable strategy: one year, one market, no out-of-sample period,
+and closing prices carrying no adjustment for splits or dividends --- which is why
+stock-days with moves beyond 25\% are dropped rather than believed.

@@ -1,0 +1,96 @@
+
+% =====================================================================
+\section{Data, institutions, and the sample}
+\label{sec:data}
+% =====================================================================
+
+\subsection{The feed}
+
+The source is the Nikkei NEEDS \texttt{TICST120} product for calendar 2024:
+one record per market event, carrying the trade if there was one and the ten best
+price levels on each side of the book as they stood afterwards. Trade direction
+is supplied by the exchange rather than inferred, which removes a source of error
+that would otherwise sit underneath every result here. Daily summaries from the
+companion \texttt{TICSS110} product supply trading units, shares outstanding,
+and the variables used to screen the universe.
+
+Five dates are excluded at the calendar level. Four never arrived in the
+delivered feed, and 2024-04-23 arrived with ten shards against a monthly median
+of twenty-two --- the signature of a transfer that stopped part-way. Treating a
+partial day as a quiet one would bias every measure computed from it, so the
+exclusion is made once, at the calendar, and no later stage can rediscover them.
+That leaves 240 usable trading days.
+
+\subsection{Two institutional details that shape everything}
+
+\paragraph{The session changed length part-way through the year.}
+The afternoon session closed at 15:00 until 2024-11-05 and at 15:30 afterwards.
+Every time-dependent quantity here is parameterised by date. A hardcoded close
+would silently truncate two months of the afternoon, and would corrupt the
+price-impact horizons on exactly those days.
+
+\paragraph{The exchange runs two tick grids at once.}
+Constituents of the TOPIX 500 trade on a finer grid than everything else --- a
+regime extended from the TOPIX 100 to the whole index on 2023-06-05 and stable
+through 2024. The schedule is encoded from the exchange's published tables and
+cross-checked against ticks read directly off the tape.
+
+This interacts with Ohta's sample filter in a way worth stating plainly, because
+it shapes the sample more than any other decision. The filter admits only tick
+sizes that are powers of ten, since the last-digit-of-ten construction is
+otherwise undefined --- on a 0.5-yen grid the last digit takes only even values
+and ``round'' stops meaning what it means elsewhere. On the finer grid the
+1,000--3,000 yen band is 0.5 yen, so a large part of the mid-priced TOPIX 500
+population is excluded outright. The regression sample is therefore tilted away
+from mid-priced large caps, and the composition is reported rather than papered
+over:
+
+\begin{table}[htbp]
+\centering
+\caption{Tick-size composition of evaluated stock-days}
+\label{tab:tickcomp}
+\small
+\begin{tabular}{@{}lrl@{}}
+\toprule
+Tick size & Stock-days & Status \\
+\midrule
+1 yen & 686 & kept \\
+5 yen & 33 & excluded by filter (d) \\
+10 yen & 28 & kept \\
+0.1 yen & 26 & kept \\
+0.5 yen & 24 & excluded by filter (d) \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Building the sample}
+
+The universe is selected by Ohta's own criteria, applied first to the daily
+summaries so that the expensive tick-level work runs only on stocks that could
+enter the sample. He studies First Section (now Prime) common stocks whose
+trading days satisfy four conditions on more than half the year's sessions: the
+first trade by 9:10, an opening price above 200 yen, more than twenty
+continuous-session trades, and a tick size that is a power of ten throughout the
+day. Regional venues, exchange-traded funds and trust units --- identifiable by
+their trading units --- are excluded.
+
+Each of those filters exists for a reason worth keeping in view. The 9:10 rule
+removes days that opened late after a price-limit halt, which would have a
+shortened continuous session and therefore a differently-behaved measure. The
+200-yen floor removes stocks so cheap that the price cannot traverse all ten
+digits without moving several percent. The twenty-trade minimum removes days
+where the measure is a ratio of small integers.
+
+Applying the same tests properly at tick level gives the final panel:
+800 stock-days attempted, 692
+passing all four filters, and 668 surviving the requirement that a stock
+qualify on more than half the year --- 334 stocks over 2 trading
+days, from 2024-01-04 to 2024-01-05. The full waterfall is reported in the stage output; no
+stock-day disappears without being counted.
+
+\paragraph{Verdict.}
+The sample is Ohta's, reconstructed on a year he did not have. Its one
+distinctive feature --- the exclusion of the 0.5-yen grid and therefore of much
+of the mid-priced large-cap population --- follows from his filter rather than
+from a choice made here, and is carried explicitly into the interpretation of
+every result below.

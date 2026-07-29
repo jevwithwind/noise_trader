@@ -1,0 +1,24 @@
+\begin{table}[htbp]
+\centering
+\caption{Price clustering and next-day liquidity}
+\label{tab:rq2}
+\small
+\begin{threeparttable}
+\begin{tabular}{@{}lrrrrr@{}}
+\toprule
+Outcome & Predictive & SE & Dynamic & SE & Stock-days \\
+\midrule
+Effective spread (log) & -- &  & -- &  & 324 \\
+Price impact, 60s (bp) & -- &  & -- &  & 324 \\
+Realized spread, 60s (bp)$^{\dagger}$ & -- &  & -- &  & 324 \\
+Depth at best quote (log)$^{\dagger}$ & -- &  & -- &  & 324 \\
+Realised variance (log)$^{\dagger}$ & -- &  & -- &  & 324 \\
+Variance-ratio deviation$^{\dagger}$ & -- &  & -- &  & 324 \\
+Amihud illiquidity (log)$^{\dagger}$ & -- &  & -- &  & 311 \\
+\bottomrule
+\end{tabular}
+\begin{tablenotes}[flushleft]\footnotesize
+\item Each cell is the coefficient on $M^{BLarge0}_{t-1}$, the round-price share of buy-initiated large-trade volume. All specifications carry stock and day fixed effects and the full control set (relative tick size, lagged log turnover, lagged log realised variance, lagged log effective spread, the overnight return, and the opening-digit by low-volatility interactions). The dynamic column adds the outcome's own lag, so its coefficient is the incremental predictive content of clustering given what yesterday's liquidity already said. Standard errors are clustered by stock and by day. Days on the 0.1-yen grid are excluded, following Ohta (2026). $^{\dagger}$ secondary outcome, not pre-specified. $^{*}p<0.1$, $^{**}p<0.05$, $^{***}p<0.01$. These are predictive associations in a single year, not causal estimates.
+\end{tablenotes}
+\end{threeparttable}
+\end{table}

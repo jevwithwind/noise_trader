@@ -1,0 +1,58 @@
+
+% =====================================================================
+\section{The order book, and the day within the day}
+\label{sec:book}
+% =====================================================================
+
+\subsection{Rebuilding the paper's equations without its proxies}
+
+\input{tables/t_rq3}
+
+Ohta explains clustering with limit-order submissions, their cancellation rate,
+and two proxies for individual activity. The proxies are unavailable here, so
+Table~\ref{tab:rq3} substitutes what the book itself shows: the round-price
+share of submitted limit-order volume, the ratio of cancellations to submissions
+at round prices, and the round-price share of standing visible depth.
+
+The hypothesis makes three sign predictions. More round-price submissions should
+mean more round-price trading, so the coefficient on $L^{S0}$ should be
+positive: it is --, not estimated. Orders that are \emph{not}
+cancelled are the ones that get picked off, so the coefficient on the
+cancellation ratio should be negative: it is --, not estimated.
+And more standing round-price inventory should mean more round-price execution:
+the coefficient on $\mathit{RDepth}$ is --, not estimated.
+
+\input{tables/t_rdepth}
+
+Table~\ref{tab:rdepth} asks the more direct question --- whether standing
+round-price depth predicts liquidity by itself. This is the measure with the
+cleanest interpretation in the whole study, because it requires no inference at
+all: it is a share of displayed volume, read off the book.
+
+\subsection{Within the day}
+
+\input{tables/t_intraday}
+
+The paper asks for the relationship ``at a daily or shorter frequency''.
+Table~\ref{tab:intraday} is the shorter one: thirty-minute buckets, with
+stock-day fixed effects absorbing everything about the day --- the stock, the
+news, the market state --- and bucket-of-day fixed effects absorbing the familiar
+intraday pattern in spreads and volume. What identifies the coefficient is
+purely within-day, bucket-to-bucket variation.
+
+The coefficient on lagged-bucket clustering in the effective-spread regression is
+-0.0012, not statistically distinguishable from zero. Coefficients here are small by construction and
+should be read that way: this design deliberately throws away all the variation
+the daily panel uses.
+
+\paragraph{Order flow moves the price further when clustering is high.}
+The execution-relevant version of the impact result asks whether the \emph{same}
+order-flow imbalance moves the midquote more on high-clustering days. The
+interaction term is 0.8634, not statistically distinguishable from zero. A positive value means
+the book is easier to push when round-price trading is heavy, which is what the
+stale-order account implies and what matters to anyone sizing an order.
+
+\paragraph{Verdict.}
+The book-level variables line up with the mechanism where they are measurable,
+and the relationship survives into within-day variation, where nothing
+slow-moving about a stock can be responsible for it.

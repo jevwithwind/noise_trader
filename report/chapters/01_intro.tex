@@ -1,0 +1,112 @@
+% =====================================================================
+\section{Introduction}
+\label{sec:intro}
+% =====================================================================
+
+\subsection{The sentence this study is built on}
+
+\textcite{Ohta2026NoiseTraders} asks what kind of participant behaviour produces
+\emph{price clustering} --- the disproportionate share of trading that executes at
+round prices --- and answers it with an order-flow mechanism. Noise traders leave
+limit orders at round prices outside the best quote, because working out a
+precise valuation is expensive and a round number is a cheap substitute. They are
+slow to revise or cancel those orders, because managing orders at speed is also
+expensive. When value moves, faster participants take the stale orders with large
+market orders. Three things follow, and the paper documents all three: clustering
+concentrates in large trades rather than small ones, it is stronger where
+individual investors are more present, and trades at round prices carry about a
+basis point more price impact than trades elsewhere, because they execute against
+prices that have gone stale.
+
+The paper then closes with a claim and a gap:
+
+\begin{quote}
+\itshape
+In light of these results, it may be possible to construct a measure of noise
+trader activity from price clustering measures. \dots\ In that case it may be
+possible to analyze the relationship between noise trader activity and price
+formation and liquidity at a daily or shorter frequency. Such analysis, however,
+remains a task for future work.
+\end{quote}
+
+This study is that analysis. It computes the clustering measures for the Tokyo
+Stock Exchange over calendar 2024 --- two years past the end of the paper's
+sample --- and asks what they say about liquidity and price formation, daily and
+within the day.
+
+\subsection{Why the question is not rhetorical}
+
+It would be easy to assume the answer. It is not obvious even in sign.
+
+In \textcite{Kyle1985} noise traders are what makes a market liquid: they are the
+volume informed traders hide inside, and without them the spread widens to
+protect against adverse selection. \textcite{PeressSchmidt2020} find the
+empirical counterpart --- when noise traders are distracted, liquidity gets
+worse. On that reading, high clustering should mark a \emph{more} liquid market.
+
+The mechanism Ohta documents points the other way. If clustering marks orders
+that are stale and about to be picked off, it marks a market where liquidity is
+being supplied by participants who are about to regret it, and where the price
+impact of a large order is unusually high. On that reading, high clustering
+should mark a market that is \emph{more} expensive to trade.
+
+Both stories are about the same participants. They differ on whether what matters
+is that the uninformed are present or that they are slow. Section~\ref{sec:liquidity}
+reports which way 2024 falls, and treats either answer as a result.
+
+\subsection{What this study can and cannot do}
+
+Ohta identifies noise traders using two proxies for individual-investor activity:
+margin-trading balances and ownership shares. Neither is available here. That
+sounds like a handicap and is partly the point: the paper's own conclusion is
+that the clustering measures \emph{are} the proxy, so a study that uses only
+clustering and the order book is testing the claim rather than assuming it.
+
+Working without those proxies also forces a substitution that turns out to be an
+advantage. The data here carry the ten best price levels on each side of the book
+after every event. That makes it possible to see the standing round-price
+inventory directly --- what share of visible resting depth is sitting at round
+prices at any moment --- where a study confined to executed trades sees
+round-price orders only after someone has taken them. The same data support
+inferring limit-order submission and cancellation volume from how the displayed
+ladder changes, which is how Ohta builds his own order-flow variables.
+
+The limits are equally plain, and are stated here rather than in a footnote. One
+calendar year is not a long panel. There is no experiment and no instrument, so
+nothing below is causal; the results are descriptive associations and predictive
+relationships, and are labelled as such throughout. The ten visible levels are a
+narrow window onto a book where most resting volume sits further out.
+
+\subsection{Contributions}
+
+\begin{enumerate}[nosep]
+\item \textbf{The first out-of-sample year.} The clustering measures are computed
+      for 2024 under Ohta's own sample filters and compared against his published
+      1997--2022 magnitudes. This is a test of the measurement, and it is run
+      before anything is built on top of it: Section~\ref{sec:stylized} either
+      reproduces the literature or the pipeline is wrong.
+\item \textbf{The relationship the paper leaves open.} Clustering is related to
+      the liquidity measures the paper itself defines --- effective spread, price
+      impact, realized spread, quoted depth --- at daily frequency and in
+      thirty-minute buckets within the day.
+\item \textbf{Two measures the paper's data could not support.} The round-price
+      share of visible ten-level resting depth, and limit-order submission and
+      cancellation shares inferred from ladder deltas, standing in for the
+      individual-activity proxies that are unavailable here.
+\item \textbf{An honest strategy demonstration.} A size-neutralised signal, sorted
+      into quintiles, rebalanced, and charged realistic costs. Its value is the
+      cost accounting, not the return.
+\end{enumerate}
+
+\subsection{Roadmap}
+
+Section~\ref{sec:lit} places the study in the literature.
+Section~\ref{sec:data} describes the feed, the institutional detail that governs
+the measures, and how the sample is built. Section~\ref{sec:measures} defines
+every measure and reports the validation the pipeline had to pass.
+Section~\ref{sec:stylized} is the 2024 replication.
+Section~\ref{sec:liquidity} is the daily clustering--liquidity relationship,
+Section~\ref{sec:book} the order-book anatomy and the within-day results, and
+Section~\ref{sec:robust} the robustness work, including a placebo that could have
+falsified the whole thing. Section~\ref{sec:strategy} is the strategy
+demonstration and Section~\ref{sec:discussion} concludes.
