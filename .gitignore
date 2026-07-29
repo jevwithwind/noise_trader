@@ -36,3 +36,6 @@ report/*.toc
 !report/tables/*.tex
 !report/figures/*.pdf
 !report/main.pdf
+
+report/*.bcf-SAVE-ERROR
+report/*.xdv
