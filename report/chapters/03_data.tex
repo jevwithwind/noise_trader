@@ -73,12 +73,12 @@ shortened continuous session and therefore a differently-behaved measure. The
 digits without moving several percent. The twenty-trade minimum removes days
 where the measure is a ratio of small integers.
 
-Applying the same tests properly at tick level gives the final panel:
-2,501 stock-days attempted, 2,229
-passing all four filters, and 2,182 surviving the requirement that a stock
-qualify on more than half the sample --- 455 stocks over 5
-trading days. The full waterfall is reported in the stage output; no stock-day
-disappears without being counted.
+Applying the same tests properly at tick level gives the final panel.
+Table~\ref{tab:waterfall} is the whole construction: no stock-day disappears
+without being counted, which is the only way a reader can tell selection from
+attrition.
+
+\input{tables/t_waterfall}
 
 \textbf{Coverage.} The panel covers 5 trading days across 1 calendar month(s), from 2025-01-06 to 2025-01-10, rather than the full 240-day year. Ingesting the complete tape for this universe takes substantially longer than the time available for this prototype, so months were ingested in an order that spreads them across the calendar rather than concentrating them at its start. Every result below should be read as covering that sample. Nothing about the pipeline changes with more months: the same command extends it, and the report regenerates from whatever the panel contains.
 

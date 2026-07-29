@@ -190,6 +190,36 @@ return.
             f"{'kept' if (r['tick10'] in (1,10,100,1000,10000)) else 'excluded by filter (d)'} \\\\"
             for r in g.iter_rows(named=True))
 
+    import s4_common as _S4
+    _steps = [
+        ("Stock-days attempted", wf.get("attempted")),
+        ("Survived the pre-screen", wf.get("evaluated")),
+        ("First trade by 9:10", wf.get("pass_open910")),
+        ("Opening price above \\textyen 200", wf.get("pass_open200")),
+        ("More than 20 continuous-session trades", wf.get("pass_n20")),
+        ("Tick a power of ten all day", wf.get("pass_tick")),
+        ("Passing all four filters", wf.get("in_sample")),
+        ("Stock qualifies on more than half the sample", wf.get("stock_days_final")),
+    ]
+    _rows = []
+    _base = wf.get("attempted") or 0
+    for lab, v in _steps:
+        if v is None:
+            continue
+        _rows.append([lab, f"{v:,}",
+                      f"{100*v/_base:.1f}" if _base else "--"])
+    if _rows:
+        _S4.latex_table(
+            os.path.join(_S4.TABLES, "t_waterfall.tex"),
+            "Sample construction", "tab:waterfall",
+            ["Step", "Stock-days", "\\% of attempted"], _rows,
+            notes="The four filters are Ohta's, applied at tick level. The "
+                  "pre-screen is a cheap four-column read that rejects stock-days "
+                  "which cannot possibly qualify -- overwhelmingly those with too "
+                  "few trades -- and changes nothing about the final sample. The "
+                  "filters are not nested, so their individual pass counts do not "
+                  "multiply to the joint count.")
+
     w("03_data.tex", f"""
 % =====================================================================
 \\section{{Data, institutions, and the sample}}
@@ -261,12 +291,12 @@ shortened continuous session and therefore a differently-behaved measure. The
 digits without moving several percent. The twenty-trade minimum removes days
 where the measure is a ratio of small integers.
 
-Applying the same tests properly at tick level gives the final panel:
-{wf.get('attempted', 0):,} stock-days attempted, {wf.get('in_sample', 0):,}
-passing all four filters, and {n_sd:,} surviving the requirement that a stock
-qualify on more than half the sample --- {n_stocks:,} stocks over {n_days}
-trading days. The full waterfall is reported in the stage output; no stock-day
-disappears without being counted.
+Applying the same tests properly at tick level gives the final panel.
+Table~\\ref{{tab:waterfall}} is the whole construction: no stock-day disappears
+without being counted, which is the only way a reader can tell selection from
+attrition.
+
+\\input{{tables/t_waterfall}}
 
 {coverage}
 
