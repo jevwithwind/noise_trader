@@ -30,7 +30,11 @@ def main() -> int:
              "All specifications carry stock and day fixed effects with standard "
              "errors clustered on both margins. Days on the 0.1-yen grid are "
              "excluded, following the paper. Nothing here is causal: these are "
-             "predictive associations within a single calendar year.", "",
+             "predictive associations within one sample of one market. A dash "
+             "means the specification was refused rather than estimated -- the "
+             "fit requires enough repeated observations on both margins, and "
+             "reporting a number from a degenerate panel would be worse than "
+             "reporting nothing.", "",
              "## Next-day liquidity (dynamic specification)", "",
              "The dynamic specification includes the outcome's own lag, so the "
              "coefficient is the incremental content of clustering given what the "
