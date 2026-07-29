@@ -86,11 +86,17 @@ def main() -> int:
             print()
 
         if rows:
-            ncoef = (len(rows[0]) - 2) // 2
+            # Different dependent variables can end up with different regressor
+            # sets when a book variable is missing on one side, which would make
+            # the table ragged and LaTeX refuse it. Pad every row to the widest.
+            width = max(len(r) for r in rows)
+            rows = [r[:-1] + [""] * (width - len(r)) + [r[-1]] for r in rows]
+            ncoef = (width - 2) // 2
             header = ["Dependent variable"]
             names = (["$L^{0}$", "SE", "$L^{0C}$", "SE", "RDepth", "SE"]
                      if have_ladder else ["RDepth", "SE"])
-            header += names[:2 * ncoef] + ["Stock-days"]
+            names = (names + ["", "SE"] * ncoef)[:2 * ncoef]
+            header += names + ["Stock-days"]
             S4.latex_table(
                 os.path.join(S4.TABLES, "t_rq3.tex"),
                 "Order-book anatomy of price clustering",
