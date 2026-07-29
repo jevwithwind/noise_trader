@@ -119,6 +119,27 @@ return.
 """)
 
     # ------------------------------------------------------------ data
+    # State coverage plainly. If the panel spans less than the full trading year,
+    # the reader is told so here rather than being left to infer it from a count.
+    months = 0
+    if final is not None and final.height:
+        months = final.select(
+            pl.col("date").cast(pl.Utf8).str.slice(0, 7)).n_unique()
+    if n_days >= 235:
+        coverage = (f"The panel covers the whole of 2024: {n_days} trading days "
+                    f"from {d0} to {d1}.")
+    else:
+        coverage = (
+            f"\\textbf{{Coverage.}} The panel covers {n_days} trading days across "
+            f"{months} calendar month(s), from {d0} to {d1}, rather than the full "
+            f"240-day year. Ingesting the complete tape for this universe takes "
+            f"substantially longer than the time available for this prototype, so "
+            f"months were ingested in an order that spreads them across the "
+            f"calendar rather than concentrating them at its start. Every result "
+            f"below should be read as covering that sample. Nothing about the "
+            f"pipeline changes with more months: the same command extends it, and "
+            f"the report regenerates from whatever the panel contains.")
+
     comp_rows = ""
     if panel is not None and "tick10" in panel.columns:
         sc = panel.filter(pl.col("skip_reason").is_null())
@@ -211,9 +232,11 @@ where the measure is a ratio of small integers.
 Applying the same tests properly at tick level gives the final panel:
 {wf.get('attempted', 0):,} stock-days attempted, {wf.get('in_sample', 0):,}
 passing all four filters, and {n_sd:,} surviving the requirement that a stock
-qualify on more than half the year --- {n_stocks:,} stocks over {n_days} trading
-days, from {d0} to {d1}. The full waterfall is reported in the stage output; no
-stock-day disappears without being counted.
+qualify on more than half the sample --- {n_stocks:,} stocks over {n_days}
+trading days. The full waterfall is reported in the stage output; no stock-day
+disappears without being counted.
+
+{coverage}
 
 \\paragraph{{Verdict.}}
 The sample is Ohta's, reconstructed on a year he did not have. Its one
