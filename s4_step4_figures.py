@@ -124,6 +124,47 @@ def main() -> int:
                 plt.close(fig)
                 print("wrote f_rdepth.pdf")
 
+        # ---- F6: the intraday shape of clustering, against the spread
+        # Ohta (2006) reports that TSE clustering is greatest at the open and
+        # decays through the day, which the price-resolution hypothesis predicts:
+        # uncertainty about value is highest when trading starts, and a round
+        # number is the cheapest substitute for an estimate. This is that curve,
+        # computed from a sample two decades later.
+        if os.path.exists(S4.PANEL_INTRADAY):
+            idf = pl.read_parquet(S4.PANEL_INTRADAY)
+            if "in_sample_final" in idf.columns:
+                idf = idf.filter(pl.col("in_sample_final"))
+            g = (idf.drop_nulls("m0").group_by("bucket")
+                 .agg(m0=pl.col("m0").mean(),
+                      es=pl.col("effsprd_bps").mean(), n=pl.len())
+                 .sort("bucket"))
+            if g.height >= 6:
+                fig, ax = plt.subplots(figsize=(6.4, 3.2))
+                b = g["bucket"].to_list()
+                ax.plot(b, [100 * v for v in g["m0"]], color=S4.BLUE, lw=1.4,
+                        marker="o", ms=3.5, label="round-price share (left)")
+                ax.axhline(10, color="0.35", lw=0.8, ls="--", zorder=0)
+                ax.set_xlabel("30-minute bucket (0 = 09:00, 10 = 15:00--15:30)")
+                ax.set_ylabel("$M^{0}$ (%)", color=S4.BLUE)
+                ax.tick_params(axis="y", labelcolor=S4.BLUE)
+                ax2 = ax.twinx()
+                ax2.plot(b, g["es"].to_list(), color=S4.ORANGE, lw=1.2, ls="--",
+                         marker="s", ms=3, label="effective spread (right)")
+                ax2.set_ylabel("Effective half-spread (bp)", color=S4.ORANGE)
+                ax2.tick_params(axis="y", labelcolor=S4.ORANGE)
+                ax2.spines["top"].set_visible(False)
+                ax2.grid(False)
+                h1, l1 = ax.get_legend_handles_labels()
+                h2, l2 = ax2.get_legend_handles_labels()
+                ax.legend(h1 + h2, l1 + l2, frameon=False, fontsize=8)
+                fig.savefig(C.write_guard(os.path.join(S4.FIGURES, "f_intraday.pdf")))
+                plt.close(fig)
+                print("wrote f_intraday.pdf")
+                C.atomic_json(os.path.join(OUT, "intraday_shape.json"), {
+                    "buckets": [{"bucket": r["bucket"], "m0": r["m0"],
+                                 "effsprd_bps": r["es"], "n": r["n"]}
+                                for r in g.iter_rows(named=True)]})
+
         # ---- F5: clustering across size quintiles
         fig, ax = plt.subplots(figsize=(6.4, 2.9))
         qs, vals, errs = [], [], []

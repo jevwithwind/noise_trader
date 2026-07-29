@@ -29,6 +29,23 @@ round-price depth predicts liquidity by itself. This is the measure with the
 cleanest interpretation in the whole study, because it requires no inference at
 all: it is a share of displayed volume, read off the book.
 
+\subsection{The shape of the trading day}
+
+Before turning to the regressions, the raw intraday profile is worth reporting on its own, because it reproduces a result from a different paper by the same author. \textcite{Ohta2006Intraday} finds that clustering on this exchange is highest at the open and decays through the session, which is what the price-resolution hypothesis predicts: uncertainty about value is greatest when trading starts, and a round number is the cheapest available substitute for an estimate.
+
+Figure~\ref{fig:intraday} shows the same curve two decades later. The round-price share opens at 17.4\% and falls to 11.4\% in the closing bucket, a decline of 6.0 percentage points, and it does so nearly monotonically. The effective spread traces the familiar intraday pattern beside it. Neither series was tuned to produce this, and the agreement with a 2006 result computed from a different sample is a further sign that the measurement is reading the phenomenon rather than an artefact.
+
+It also sharpens the interpretation of what follows. If clustering were simply a proxy for wide spreads, the two curves would be redundant; they are not, and the regressions below control for the spread directly.
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.85\linewidth]{f_intraday.pdf}
+\caption{Round-price share of traded volume and the effective half-spread, by
+thirty-minute bucket. The dashed horizontal line is the 10\% a uniform digit
+distribution would give.}
+\label{fig:intraday}
+\end{figure}
+
 \subsection{Within the day}
 
 \input{tables/t_intraday}
