@@ -173,9 +173,17 @@ EXEC_TYPE_MAP: dict[str, int] = {
 AUCTION_EXEC_TYPES = {"Opening", "Unknown (101)", "Unknown (201)", "Other",
                       "Unknown (100)", "Unknown (200)"}
 
-# Quote flag value that means an ordinary two-sided quote (as opposed to a special
-# quote, a market-order-only quote, or a pre-opening indication).
-REGULAR_QUOTE_FLAGS = {"Regular Quote"}
+# Quote flags arrive as raw integers (tse_tick decodes Ayumi and Execution Type to
+# strings but leaves the per-level quote flags numeric). Ohta requires both sides to
+# be showing *ordinary* quotes (一般気配); those are exactly 128 "Regular Quote" and
+# 131 "Regular (Improving)". Everything else -- 0 no quote, 32/33 special quote,
+# 64 market-order quote, 112 pre-opening, 130 final quote -- is excluded.
+ORDINARY_QUOTE_FLAGS = frozenset({128, 131})
+
+# Ayumi (歩み値) states that count as continuous-session trading. Trades carrying any
+# other state -- the closing prints, call auctions, halts, circuit breakers,
+# reference prices -- are excluded from every measure.
+ZARABA_AYUMI_FLAGS = frozenset({"Regular", "Discontinuous"})
 
 
 # ------------------------------------------------------------------- yobine tables
