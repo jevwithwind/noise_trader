@@ -36,9 +36,12 @@ def main() -> int:
     fails = []
     try:
         print("=== S2 step 2: store vs raw tape ===\n")
-        dates = S3.store_dates()
+        # The store can hold more than the study year -- an earlier run's data
+        # stays where it is -- so compare only dates the study actually uses,
+        # which are the ones whose raw files sit under the configured raw path.
+        dates = [d for d in S3.store_dates() if C.in_study_months(d)]
         if not dates:
-            print("store is empty")
+            print(f"store holds no dates in the study months ({C.MONTHS})")
             return 1
         t500 = C.load_topix500()
         use_dates = dates[:args.n_dates]

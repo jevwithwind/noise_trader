@@ -8,15 +8,17 @@
 \toprule
 Portfolio & Return (bp/day) & SE & $t$ & Names & Eff. half-spread (bp) \\
 \midrule
-Q1 & -52.33 & (23.42) & -2.23 & 82 & 11.42 \\
-Q2 & -33.12 & (27.74) & -1.19 & 82 & 7.88 \\
-Q3 & -74.94 & (23.62) & -3.17 & 82 & 7.30 \\
-Q4 & -63.98 & (14.93) & -4.29 & 82 & 6.92 \\
-Q5 & -55.55 & (19.96) & -2.78 & 82 & 10.13 \\
+Q1 & +5.40 & (17.50) & 0.31 & 191 & 11.10 \\
+Q2 & +4.77 & (17.30) & 0.28 & 192 & 8.63 \\
+Q3 & +3.20 & (17.05) & 0.19 & 192 & 7.71 \\
+Q4 & +1.82 & (17.24) & 0.11 & 192 & 8.13 \\
+Q5 & +3.14 & (16.75) & 0.19 & 191 & 10.56 \\
+Q5 - Q1 gross & -2.26 & (2.31) & -0.98 & -- & 9.17 \\
+Q5 - Q1 net of costs & -29.18 & -- & -- & -- & -- \\
 \bottomrule
 \end{tabular}
 \begin{tablenotes}[flushleft]\footnotesize
-\item The signal is the daily cross-sectional residual of $M^{BLarge0}$ on the opening-digit contamination controls, relative tick size, log market capitalisation, lagged log turnover, lagged volatility, lagged spread and the overnight return, standardised within the day. Portfolios are equally weighted and rebalanced daily. Costs charge the measured effective half-spread on both legs of the observed turnover. Stock-days with an absolute move above 25\% are dropped, since closing prices here carry no adjustment for splits or dividends. This is a demonstration that the pipeline runs end to end, not evidence of a profitable strategy: one year, one market, and no out-of-sample period.
+\item The signal is the daily cross-sectional residual of $M^{BLarge0}$ on the opening-digit contamination controls, relative tick size, log market capitalisation, lagged log turnover, lagged volatility, lagged spread and the overnight return, standardised within the day. Portfolios are equally weighted and rebalanced daily. Costs charge the measured effective half-spread on both sides of every replacement in both legs, which is four times turnover times the half-spread. Stock-days with an absolute move above 25\% are dropped, since closing prices here carry no adjustment for splits or dividends. This is a demonstration that the pipeline runs end to end, not evidence of a profitable strategy: one short sample, one market, and no out-of-sample period.
 \end{tablenotes}
 \end{threeparttable}
 \end{table}

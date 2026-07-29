@@ -31,20 +31,24 @@ def main() -> int:
         if r.returncode != 0:
             fails.append(f"unit tests failed: {last}")
 
-        dates = S3.store_dates()
-        print(f"store dates: {len(dates)}"
+        # Scope everything to the months the study covers: the store may hold
+        # other periods from earlier runs, and the calendar covers the whole year.
+        dates = [d for d in S3.store_dates() if C.in_study_months(d)]
+        print(f"store dates in study months: {len(dates)}"
               + (f"  ({dates[0]}..{dates[-1]})" if dates else ""))
         if not dates:
-            fails.append("store is empty")
+            fails.append("store holds no dates in the study months")
 
         cal = pl.read_csv(C.CALENDAR_CSV)
-        usable = set(cal.filter(pl.col("status") == "ok")["date"].cast(pl.Utf8).to_list())
+        usable = {d for d in
+                  cal.filter(pl.col("status") == "ok")["date"].cast(pl.Utf8).to_list()
+                  if C.in_study_months(d)}
         have = set(dates) & usable
         missing = sorted(usable - set(dates))
-        print(f"usable days present in store: {len(have)} of {len(usable)}")
+        print(f"usable study days present in store: {len(have)} of {len(usable)}")
         if missing:
-            print(f"  missing: {len(missing)}"
-                  + (f" (first few: {missing[:5]})" if missing else ""))
+            print(f"  missing: {len(missing)} (first few: {missing[:5]})")
+            fails.append(f"{len(missing)} usable study day(s) absent from the store")
 
         uni = os.path.join(C.RESULTS, "s2_ingest", "universe.csv")
         if os.path.exists(uni):

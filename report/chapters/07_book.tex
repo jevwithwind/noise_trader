@@ -16,11 +16,11 @@ at round prices, and the round-price share of standing visible depth.
 
 The hypothesis makes three sign predictions. More round-price submissions should
 mean more round-price trading, so the coefficient on $L^{S0}$ should be
-positive: it is --, not estimated. Orders that are \emph{not}
+positive: it is 0.0029, not statistically distinguishable from zero. Orders that are \emph{not}
 cancelled are the ones that get picked off, so the coefficient on the
-cancellation ratio should be negative: it is --, not estimated.
+cancellation ratio should be negative: it is -0.0092, not statistically distinguishable from zero.
 And more standing round-price inventory should mean more round-price execution:
-the coefficient on $\mathit{RDepth}$ is --, not estimated.
+the coefficient on $\mathit{RDepth}$ is 0.2565, significant at the 1\% level.
 
 \input{tables/t_rdepth}
 
@@ -33,7 +33,7 @@ all: it is a share of displayed volume, read off the book.
 
 Before turning to the regressions, the raw intraday profile is worth reporting on its own, because it reproduces a result from a different paper by the same author. \textcite{Ohta2006Intraday} finds that clustering on this exchange is highest at the open and decays through the session, which is what the price-resolution hypothesis predicts: uncertainty about value is greatest when trading starts, and a round number is the cheapest available substitute for an estimate.
 
-Figure~\ref{fig:intraday} shows the same curve two decades later. The round-price share opens at 17.4\% and falls to 11.4\% in the closing bucket, a decline of 6.0 percentage points, and it does so nearly monotonically. The effective spread traces the familiar intraday pattern beside it. Neither series was tuned to produce this, and the agreement with a 2006 result computed from a different sample is a further sign that the measurement is reading the phenomenon rather than an artefact.
+Figure~\ref{fig:intraday} shows the same curve two decades later. The round-price share opens at 16.4\% and falls to 11.5\% in the closing bucket, a decline of 4.9 percentage points, and it does so nearly monotonically. The effective spread traces the familiar intraday pattern beside it. Neither series was tuned to produce this, and the agreement with a 2006 result computed from a different sample is a further sign that the measurement is reading the phenomenon rather than an artefact.
 
 It also sharpens the interpretation of what follows. If clustering were simply a proxy for wide spreads, the two curves would be redundant; they are not, and the regressions below control for the spread directly.
 
@@ -58,14 +58,14 @@ intraday pattern in spreads and volume. What identifies the coefficient is
 purely within-day, bucket-to-bucket variation.
 
 The coefficient on lagged-bucket clustering in the effective-spread regression is
-0.0382, significant at the 1\% level. Coefficients here are small by construction and
+0.0189, significant at the 1\% level. Coefficients here are small by construction and
 should be read that way: this design deliberately throws away all the variation
 the daily panel uses.
 
 \paragraph{Order flow moves the price further when clustering is high.}
 The execution-relevant version of the impact result asks whether the \emph{same}
 order-flow imbalance moves the midquote more on high-clustering days. The
-interaction term is -0.0132, not statistically distinguishable from zero. A positive value means
+interaction term is 0.0514, not statistically distinguishable from zero. A positive value means
 the book is easier to push when round-price trading is heavy, which is what the
 stale-order account implies and what matters to anyone sizing an order.
 

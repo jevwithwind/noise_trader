@@ -138,13 +138,29 @@ def main() -> int:
                   f"({100*mm.height/max(scored.height,1):.2f}% of evaluated stock-days)")
             print("  These are resolved in the tape's favour wherever it is "
                   "informative, so a disagreement is a diagnostic of index "
-                  "membership drift rather than an error. What would be an error "
-                  "is a stock-day whose digits collapse onto one value:")
-            if "m0_all" in daily.columns:
-                bad = daily.filter(pl.col("in_sample") & (pl.col("m0_all") > 0.6))
-                print(f"  stock-days with M0 above 60%: {bad.height:,}"
-                      + ("  <- inspect: this is what a wrong tick looks like"
-                         if bad.height else "  (none)"))
+                  "membership drift rather than an error.")
+
+        # A mis-assigned tick has a specific signature, and it is not simply a
+        # high M0. If the assumed tick is a fraction of the real one, every price
+        # lands on the same few points of the assumed grid, so the digit
+        # distribution has support on one or two digits and nothing anywhere
+        # else. A genuinely quiet day near a round price also shows a high M0,
+        # but it spreads across neighbouring digits -- that is the mechanical
+        # contamination Ohta's Table 2 documents, and it is data, not a defect.
+        dcols = [f"m{i}_all" for i in range(10)]
+        if all(c in daily.columns for c in dcols):
+            sup = daily.filter(pl.col("in_sample")).with_columns(
+                n_digits=sum((pl.col(c).fill_null(0) > 0.005).cast(pl.Int32)
+                             for c in dcols))
+            collapsed = sup.filter(pl.col("n_digits") <= 2)
+            highm0 = sup.filter(pl.col("m0_all") > 0.6)
+            print(f"\nstock-days with M0 above 60%: {highm0.height:,} "
+                  f"({100*highm0.height/max(sup.height,1):.3f}%) -- expected: "
+                  "quiet days whose price sat on a round number")
+            print(f"stock-days whose digits collapse onto two values or fewer: "
+                  f"{collapsed.height:,}"
+                  + ("  <- THIS is what a wrong tick looks like; inspect"
+                     if collapsed.height > 0.001 * sup.height else "  (within noise)"))
         if "tick_source" in daily.columns:
             print("tick source: " + ", ".join(
                 f"{r['tick_source']}={r['len']:,}" for r in

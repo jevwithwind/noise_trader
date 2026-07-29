@@ -48,11 +48,12 @@ over:
 \toprule
 Tick size & Stock-days & Status \\
 \midrule
-1 yen & 2,229 & kept \\
-10 yen & 86 & kept \\
-0.1 yen & 82 & kept \\
-5 yen & 57 & excluded by filter (d) \\
-0.5 yen & 39 & excluded by filter (d) \\
+1 yen & 81,159 & kept \\
+10 yen & 3,626 & kept \\
+0.1 yen & 2,668 & kept \\
+0.5 yen & 1,729 & excluded by filter (d) \\
+5 yen & 1,260 & excluded by filter (d) \\
+3 yen & 4 & excluded by filter (d) \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -82,7 +83,9 @@ attrition.
 
 \input{tables/t_waterfall}
 
-\textbf{Coverage.} The panel covers 5 trading days across 1 calendar month(s), from 2025-01-06 to 2025-01-10, rather than the full 240-day year. Ingesting the complete tape for this universe takes substantially longer than the time available for this prototype, so months were ingested in an order that spreads them across the calendar rather than concentrating them at its start. Every result below should be read as covering that sample. Nothing about the pipeline changes with more months: the same command extends it, and the report regenerates from whatever the panel contains.
+\textbf{Coverage.} The panel covers 78 trading days across 4 consecutive calendar months, from 2025-01-06 to 2025-04-30, rather than the full 243-day year. Ingesting and processing the complete tape for this universe takes substantially longer than the time available for a prototype, and a contiguous block was chosen over scattered months so that every lag in the panel is a genuine one-day lag.
+
+That choice has a cost worth naming. Four consecutive months is one market regime, not a cross-section of them, and this particular block is not a quiet one: April 2025 delivered almost twice January's message volume. The half-sample split in Section~\ref{sec:robust} is doing real work here rather than serving as a formality. Nothing about the pipeline changes with more months --- the same command extends it and the report regenerates from whatever the panel contains --- but the results below describe this stretch of 2025, not the year.
 
 \paragraph{Verdict.}
 The sample is Ohta's, reconstructed on a year he did not have. Its one

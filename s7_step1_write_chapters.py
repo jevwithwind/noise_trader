@@ -121,6 +121,8 @@ return.
     # ------------------------------------------------------------ data
     # State coverage plainly. If the panel spans less than the full trading year,
     # the reader is told so here rather than being left to infer it from a count.
+    cal_sum = C.read_json(
+        os.path.join(C.RESULTS, "s0_inst", "calendar_summary.json"), {})
     months = 0
     if final is not None and final.height:
         months = final.select(
@@ -131,17 +133,22 @@ return.
     else:
         coverage = (
             f"\\textbf{{Coverage.}} The panel covers {n_days} trading days across "
-            f"{months} calendar month(s), from {d0} to {d1}, rather than the full "
-            f"240-day year. Ingesting the complete tape for this universe takes "
-            f"substantially longer than the time available for this prototype, so "
-            f"months were ingested in an order that spreads them across the "
-            f"calendar rather than concentrating them at its start. Every result "
-            f"below should be read as covering that sample. Nothing about the "
-            f"pipeline changes with more months: the same command extends it, and "
-            f"the report regenerates from whatever the panel contains.")
+            f"{months} consecutive calendar months, from {d0} to {d1}, rather than "
+            f"the full {cal_sum.get('n_usable', '?')}-day year. Ingesting and "
+            f"processing the complete tape for this universe takes substantially "
+            f"longer than the time available for a prototype, and a contiguous "
+            f"block was chosen over scattered months so that every lag in the "
+            f"panel is a genuine one-day lag.\n\n"
+            f"That choice has a cost worth naming. Four consecutive months is one "
+            f"market regime, not a cross-section of them, and this particular "
+            f"block is not a quiet one: April 2025 delivered almost twice "
+            f"January's message volume. The half-sample split in "
+            f"Section~\\ref{{sec:robust}} is doing real work here rather than "
+            f"serving as a formality. Nothing about the pipeline changes with more "
+            f"months --- the same command extends it and the report regenerates "
+            f"from whatever the panel contains --- but the results below describe "
+            f"this stretch of {C.YEAR}, not the year.")
 
-    cal_sum = C.read_json(
-        os.path.join(C.RESULTS, "s0_inst", "calendar_summary.json"), {})
     n_excl = len(cal_sum.get("excluded", []) or [])
     if n_excl:
         gap_para = (
@@ -349,6 +356,38 @@ every result below.
                     + ". The measurement is sound and the rest of the study can be "
                       "built on it.")
 
+    _q1 = (st.get("size_q1") or {}).get("m_b_large0")
+    _q5 = (st.get("size_q5") or {}).get("m_b_large0")
+    if _q1 is not None and _q5 is not None and _q1 > _q5:
+        size_para = (
+            "Table~\\ref{tab:size} shows clustering falling across size "
+            "quintiles, the cross-sectional gradient Ohta reports and Harris "
+            "predicts. It also explains why the strategy demonstration in "
+            "Section~\\ref{sec:strategy} neutralises size before sorting: an "
+            "unneutralised clustering sort is substantially a small-cap bet.")
+    elif _q1 is not None and _q5 is not None:
+        size_para = (
+            "Table~\\ref{tab:size} is the one place this sample departs from the "
+            "paper. Ohta reports clustering falling with market capitalisation; "
+            f"here the smallest quintile shows {pct(_q1)}\\% and the largest "
+            f"{pct(_q5)}\\%, with no reliable gradient between them.\n\n"
+            "The likely reason is the universe rather than the market. Ohta's "
+            "sample spans the whole First Section, a range wide enough for a size "
+            "gradient to show. The screen used here keeps only stocks liquid "
+            "enough to clear his twenty-trade and tick-size filters on more than "
+            "half the sample, which removes much of the small end before the "
+            "quintiles are formed; what remains is a comparison among stocks that "
+            "are all reasonably active. A sample-selection explanation is not the "
+            "same as a refutation, and it would be settled by running the same "
+            "measures on the Standard and Growth sections, which this study does "
+            "not cover.\n\n"
+            "It does not change the strategy design in "
+            "Section~\\ref{sec:strategy}: size is neutralised there regardless, "
+            "because the concern is that a sort might load on size, not that it "
+            "must.")
+    else:
+        size_para = "Table~\\ref{tab:size} reports clustering by size quintile."
+
     w("05_stylized.tex", f"""
 % =====================================================================
 \\section{{Does {C.YEAR} look like the paper's sample?}}
@@ -409,11 +448,7 @@ that order placement collapses back onto whole-yen prices --- and a whole yen is
 the roundest number available. These days are kept here, where they are a
 result, and excluded from the regressions, where the paper excludes them.
 
-Table~\\ref{{tab:size}} shows clustering falling across size quintiles, the
-cross-sectional gradient Ohta reports and Harris predicts. It also explains why
-the strategy demonstration in Section~\\ref{{sec:strategy}} neutralises size
-before sorting: an unneutralised clustering sort is substantially a small-cap
-bet.
+{size_para}
 
 \\subsection{{The impact premium}}
 
