@@ -708,6 +708,57 @@ and closing prices carrying no adjustment for splits or dividends --- which is w
 stock-days with moves beyond 25\\% are dropped rather than believed.
 """)
 
+    # These two paragraphs are written from the estimates rather than asserted,
+    # so a null result reads as a null result instead of as a claim the tables
+    # do not support.
+    _t_es = (rq2.get("ln_effsprd|dynamic", {}).get("t") or {}).get("m_b_large0_l1")
+    _t_ip = (rq2.get("imp60_bps|dynamic", {}).get("t") or {}).get("m_b_large0_l1")
+    _strong = [x for x in (_t_es, _t_ip) if x is not None and abs(x) > 1.96]
+    _n_pl = sum(1 for d in range(1, 10)
+                if d != 5 and abs((rob.get(f"placebo_d{d}", {}).get("t") or 0)) > 1.96)
+    if _strong:
+        found_para = (
+            "On the question he leaves open, clustering carries information about "
+            "next-day liquidity beyond what that liquidity's own history already "
+            "contains, on at least one of the two pre-specified outcomes. A "
+            f"placebo across the other last digits leaves {_n_pl} of eight at "
+            "conventional significance, which is what separates the result from "
+            "an artefact of how a concentration measure behaves.")
+    else:
+        found_para = (
+            "On the question he leaves open, the answer here is negative, and "
+            "that is worth stating plainly rather than burying. Once the "
+            "outcome's own lag and the full control set are included, lagged "
+            "clustering adds nothing statistically distinguishable from zero to "
+            "either pre-specified liquidity outcome. Four months is a short "
+            "panel and the specification is demanding -- stock and day effects "
+            "absorb most of the variation these measures have -- so this is "
+            "weak evidence of absence rather than evidence of absence. What it "
+            "does establish is that the relationship, if it exists, is not large "
+            "enough to surface in a single quarter of data under this design.")
+
+    _rda = (st.get("rdepth_ask0") or {}).get("mean")
+    _lc = (rq3.get("m_b_large0", {}).get("t") or {}).get("l_s0c_l1")
+    _rd = (rq3.get("m_b_large0", {}).get("t") or {}).get("rdepth_ask0_l1")
+    _signs = []
+    if _rd is not None:
+        _signs.append("standing round-price depth "
+                      + ("enters positively as predicted" if _rd > 0
+                         else "does not enter with the predicted sign"))
+    if _lc is not None:
+        _signs.append("the cancellation ratio "
+                      + ("enters negatively as predicted" if _lc < 0
+                         else "does not enter with the predicted sign"))
+    book_para = (
+        "The book-based measures are the clearer contribution. Round prices hold "
+        f"{pct(_rda)}\\% of standing visible depth against a uniform benchmark of "
+        "10\\%, which observes the stale inventory directly rather than after it "
+        "has been taken"
+        + (", and in the panel " + " while ".join(_signs) + "." if _signs else ".")
+        + " The inferred submission and cancellation shares reproduce Ohta's "
+        "published magnitudes without having been calibrated to them, which is "
+        "the strongest external validation in the study.")
+
     # ------------------------------------------------------------ discussion
     w("10_discussion.tex", f"""
 % =====================================================================
@@ -724,17 +775,9 @@ and smaller stocks cluster more, and trades at round prices carry a positive
 price-impact premium of roughly the size he reports. None of this was tuned; the
 comparison was set up before the numbers were computed.
 
-On the question he leaves open, clustering carries information about next-day
-liquidity beyond what that liquidity's own history already contains, and the
-relationship persists into within-day variation where no slow-moving stock
-characteristic can account for it. A placebo across the other nine digits
-separates the result from an artefact of the measure's construction.
+{found_para}
 
-The two book-based measures behave as the mechanism implies. Round prices hold a
-disproportionate share of standing visible depth --- observing the stale
-inventory directly rather than after it has been taken --- and the round-price
-share of submitted limit orders and their cancellation ratio enter with the signs
-the hypothesis predicts.
+{book_para}
 
 \\subsection{{What it is not}}
 
