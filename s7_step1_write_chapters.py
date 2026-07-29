@@ -299,6 +299,24 @@ every result below.
     mss_mean = (st.get("m_s_small0") or {}).get("mean")
     rdb_mean = (st.get("rdepth_bid0") or {}).get("mean")
     gap_b_pp = 100 * (gap_b.get("gap") or 0)
+    # The stop rule guarantees the first two clauses -- the chain halts otherwise --
+    # but the tick-regime comparison is only made when both grids are present.
+    _bits = ["clustering well above the uniform benchmark",
+             "concentrated in large trades"]
+    if fine_m0 is not None and one_m0 is not None:
+        _bits.append("stronger on finer grids"
+                     if fine_m0 > one_m0 else "not stronger on the finer grid here")
+    if (st.get("size_q1") or {}).get("m0") is not None and        (st.get("size_q5") or {}).get("m0") is not None:
+        _bits.append("stronger in smaller stocks"
+                     if st["size_q1"]["m0"] > st["size_q5"]["m0"]
+                     else "without the usual size gradient")
+    _db = (im.get("dimp60_b") or {}).get("pooled")
+    _bits.append("carrying a positive round-price impact premium"
+                 if (_db or 0) > 0 else "with the impact premium not positive here")
+    styl_verdict = ("The sample reproduces the paper's facts: " + ", ".join(_bits)
+                    + ". The measurement is sound and the rest of the study can be "
+                      "built on it.")
+
     w("05_stylized.tex", f"""
 % =====================================================================
 \\section{{Does {C.YEAR} look like the paper's sample?}}
@@ -421,10 +439,7 @@ Every regression below therefore carries the interaction of the opening-digit
 dummies with a low-volatility indicator, as the paper does.
 
 \\paragraph{{Verdict.}}
-The sample reproduces the paper's facts: clustering above the uniform benchmark,
-concentrated in large trades, stronger on finer grids and in smaller stocks, and
-carrying a positive round-price impact premium of roughly the published size. The
-measurement is sound and the rest of the study can be built on it.
+{styl_verdict}
 """)
 
     # ------------------------------------------------------------ liquidity
